@@ -1,0 +1,75 @@
+{
+  "name": "Otogram - شارك لحظاتك مع العالم",
+  "short_name": "Otogram",
+  "description": "منصة مشاركة الفيديوهات القصيرة والردود التفاعلية",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["social", "entertainment", "video"],
+  "lang": "ar",
+  "dir": "rtl",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "الرئيسية",
+      "short_name": "Home",
+      "description": "عرض الفيديوهات الرئيسية",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/favicon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "رفع فيديو",
+      "short_name": "Upload",
+      "description": "رفع فيديو جديد",
+      "url": "/upload",
+      "icons": [
+        {
+          "src": "/favicon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

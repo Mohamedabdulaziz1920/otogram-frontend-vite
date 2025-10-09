@@ -1,0 +1,484 @@
+/* ========================================
+   NAVIGATION BAR - TIKTOK STYLE
+   ======================================== */
+
+/* Variables */
+:root {
+  --nav-bg: rgba(0, 0, 0, 0.95);
+  --nav-border: rgba(255, 255, 255, 0.1);
+  --nav-text: #ffffff;
+  --nav-text-inactive: rgba(255, 255, 255, 0.6);
+  --nav-active: #fe2c55;
+  --nav-height: 60px;
+}
+
+[data-theme="light"] {
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --nav-border: rgba(0, 0, 0, 0.1);
+  --nav-text: #000000;
+  --nav-text-inactive: rgba(0, 0, 0, 0.6);
+}
+
+/* Navigation Bar */
+.navigation-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--nav-border);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+/* Safe area for iOS */
+@supports (padding: max(0px)) {
+  .navigation-bar {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    height: calc(var(--nav-height) + max(0px, env(safe-area-inset-bottom)));
+  }
+}
+
+/* Nav Container */
+.nav-container {
+  max-width: 600px;
+  margin: 0 auto;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+}
+
+/* Nav Item */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  max-width: 80px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  color: var(--nav-text-inactive);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.nav-item:hover {
+  color: var(--nav-text);
+}
+
+.nav-item.active {
+  color: var(--nav-active);
+}
+
+/* Nav Icon Wrapper */
+.nav-icon-wrapper {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Nav Icon */
+.nav-icon {
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.1);
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.15);
+}
+
+/* Theme Icon with Animation */
+.theme-icon {
+  animation: themeIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes themeIconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.theme-toggle-nav:hover .theme-icon {
+  animation: themeIconRotate 0.5s ease;
+}
+
+@keyframes themeIconRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Active Indicator */
+.active-indicator {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--nav-active);
+  border-radius: 2px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Nav Label */
+.nav-label {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.nav-item.active .nav-label {
+  font-weight: 600;
+}
+
+/* Upload Button - Center */
+.upload-button {
+  flex: 0 0 auto;
+  max-width: none;
+  padding: 0;
+  margin: 0 5px;
+}
+
+.upload-icon-wrapper {
+  width: 48px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-icon-bg {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.upload-button:hover .upload-icon-bg {
+  transform: scale(1.1);
+}
+
+.upload-icon-left,
+.upload-icon-center,
+.upload-icon-right {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.upload-icon-left,
+.upload-icon-right {
+  width: 10px;
+  background: #25f4ee;
+  border-radius: 4px;
+}
+
+.upload-icon-left {
+  transform: translateX(4px);
+  z-index: 1;
+}
+
+.upload-icon-right {
+  background: #fe2c55;
+  transform: translateX(-4px);
+  z-index: 1;
+}
+
+.upload-icon-center {
+  width: 32px;
+  background: var(--nav-text);
+  border-radius: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .upload-icon-center {
+  background: #000000;
+}
+
+.upload-icon {
+  font-size: 18px;
+  color: var(--nav-bg);
+}
+
+[data-theme="light"] .upload-icon {
+  color: #ffffff;
+}
+
+/* Profile Avatar in Nav */
+.profile-avatar-nav {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.nav-profile-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-item.active .nav-profile-img {
+  border-color: var(--nav-active);
+}
+
+.active-ring {
+  position: absolute;
+  inset: -3px;
+  border: 2px solid var(--nav-active);
+  border-radius: 50%;
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+/* Admin Item */
+.admin-item .admin-icon {
+  color: var(--nav-text-inactive);
+}
+
+.admin-item:hover .admin-icon,
+.admin-item.active .admin-icon {
+  color: #ffd700;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+/* Upload Tip Tooltip */
+.upload-tip {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 12px;
+  padding: 15px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+  max-width: 300px;
+  text-align: center;
+  animation: tooltipSlide 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="light"] .upload-tip {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes tooltipSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.upload-tip p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nav-active);
+}
+
+.upload-tip span {
+  font-size: 12px;
+  color: var(--nav-text-inactive);
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0 5px;
+  }
+
+  .nav-item {
+    gap: 2px;
+    padding: 6px 2px;
+    max-width: 70px;
+  }
+
+  .nav-icon {
+    font-size: 22px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+  }
+
+  .upload-icon-wrapper {
+    width: 44px;
+    height: 28px;
+  }
+
+  .upload-icon-bg {
+    height: 28px;
+  }
+
+  .upload-icon-left,
+  .upload-icon-center,
+  .upload-icon-right {
+    height: 28px;
+  }
+
+  .upload-icon-center {
+    width: 35px;
+  }
+
+  .upload-icon {
+    font-size: 16px;
+  }
+
+  .nav-profile-img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .upload-tip {
+    max-width: 260px;
+    padding: 12px 16px;
+  }
+
+  .upload-tip p {
+    font-size: 13px;
+  }
+
+  .upload-tip span {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-label {
+    font-size: 9px;
+  }
+
+  .nav-icon {
+    font-size: 20px;
+  }
+}
+
+/* Accessibility */
+.nav-item:focus-visible {
+  outline: 2px solid var(--nav-active);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Prevent text selection */
+.navigation-bar {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Animation for theme change */
+.theme-toggle-nav {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, var(--nav-active) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle-nav:active::before {
+  opacity: 0.2;
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Hide upload tooltip arrow (optional enhancement) */
+.upload-tip::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--nav-bg);
+}
+
+/* Smooth transitions for theme switching */
+.navigation-bar,
+.nav-item,
+.upload-tip {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease,
+              color 0.3s ease;
+}

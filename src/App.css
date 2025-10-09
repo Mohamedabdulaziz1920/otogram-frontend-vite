@@ -1,0 +1,728 @@
+/* ========================================
+   THEME VARIABLES & GLOBAL STYLES
+   ======================================== */
+
+/* Dark Theme Variables (Default) */
+:root,
+[data-theme="dark"] {
+  --primary-color: #fe2c55;
+  --secondary-color: #25f4ee;
+  --bg-primary: #000000;
+  --bg-secondary: #161823;
+  --bg-tertiary: #1a1a2e;
+  --bg-input: #121212;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-input: #333333;
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --nav-height: 60px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --radius: 12px;
+  --error-color: #ff4458;
+  --success-color: #00f2ea;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --primary-color: #fe2c55;
+  --secondary-color: #00d4ff;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f1f2f6;
+  --bg-tertiary: #e8eaed;
+  --bg-input: #f8f9fa;
+  --text-primary: #000000;
+  --text-secondary: rgba(0, 0, 0, 0.75);
+  --text-muted: rgba(0, 0, 0, 0.5);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-input: #d1d5db;
+  --overlay-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --error-color: #dc2626;
+  --success-color: #059669;
+}
+
+/* ========================================
+   GLOBAL RESET - مع دعم التمرير باللمس
+   ======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* ✅ إصلاح التمرير على HTML */
+html {
+  /* السماح بالتمرير */
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+  /* تمرير سلس على iOS */
+  -webkit-overflow-scrolling: touch;
+  /* تمكين التمرير السلس */
+  scroll-behavior: smooth;
+}
+
+/* ✅ إصلاح التمرير على Body */
+body {
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  /* السماح بالتمرير */
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* تحسينات النص */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0;
+  line-height: 1.6;
+  /* الانتقالات */
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* ✅ تمرير سلس على iOS */
+  -webkit-overflow-scrolling: touch;
+  /* ✅ السماح بجميع إجراءات اللمس */
+  touch-action: pan-y pan-x;
+  /* ✅ منع pull-to-refresh المزعج */
+  overscroll-behavior-y: contain;
+  /* الحد الأدنى للارتفاع */
+  min-height: 100%;
+  position: relative;
+}
+
+/* ✅ إصلاح التمرير على #root */
+#root {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* تحديث جميع العناصر لاستخدام Cairo */
+h1, h2, h3, h4, h5, h6,
+p, span, div, button, input, textarea, select,
+label, a, li, td, th {
+  font-family: 'Cairo', sans-serif !important;
+}
+
+/* ========================================
+   FONT WEIGHTS
+   ======================================== */
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-regular {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-extrabold {
+  font-weight: 800;
+}
+
+/* ========================================
+   APP CONTAINER - مع دعم التمرير
+   ======================================== */
+
+.App {
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+  /* ✅ السماح بالتمرير */
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) var(--bg-secondary);
+}
+
+/* ========================================
+   BUTTON STYLES
+   ======================================== */
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Cairo', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 8px rgba(254, 44, 85, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: #e91e3a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(254, 44, 85, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+[data-theme="light"] .btn-secondary {
+  border-color: var(--text-primary);
+}
+
+/* ========================================
+   FORM STYLES
+   ======================================== */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Cairo', sans-serif;
+  transition: color 0.3s ease;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.1);
+}
+
+[data-theme="light"] .form-group input:focus,
+[data-theme="light"] .form-group textarea:focus,
+[data-theme="light"] .form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(254, 44, 85, 0.15);
+}
+
+/* ========================================
+   MESSAGE STYLES
+   ======================================== */
+
+.error-message {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: 5px;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.success-message {
+  color: var(--success-color);
+  font-size: 14px;
+  margin-top: 5px;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========================================
+   LOADING STYLES
+   ======================================== */
+
+.loading {
+  font-family: 'Cairo', sans-serif;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+/* ✅ Utility class للعناصر القابلة للتمرير */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   SELECTION STYLING
+   ======================================== */
+
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* ========================================
+   FOCUS OUTLINE
+   ======================================== */
+
+*:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   LINK STYLING
+   ======================================== */
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--secondary-color);
+}
+
+/* ========================================
+   IMAGE RENDERING
+   ======================================== */
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ========================================
+   SMOOTH TRANSITIONS
+   ======================================== */
+
+* {
+  transition-property: background-color, color, border-color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Exclude certain elements from transitions */
+video,
+img,
+svg,
+.no-transition {
+  transition: none !important;
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS & TOUCH SUPPORT
+   ======================================== */
+
+/* ✅ إصلاح التمرير على iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  body {
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+/* Prevent iOS zoom on input focus */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* ✅ تحسين التمرير على الموبايل */
+  html,
+  body,
+  #root,
+  .App {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+/* Safe Area for Mobile Devices */
+@supports (padding: max(0px)) {
+  .App {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  body {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ✅ منع pull-to-refresh على Chrome Android */
+body {
+  overscroll-behavior: contain;
+}
+
+/* ✅ تحسين الأداء على الأجهزة المحمولة */
+@media (hover: none) and (pointer: coarse) {
+  /* تحسينات خاصة بالأجهزة اللمسية */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* زيادة حجم منطقة النقر للأزرار */
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ========================================
+   THEME SPECIFIC ADJUSTMENTS
+   ======================================== */
+
+/* Dark Mode */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Light Mode */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease;
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease;
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease;
+}
+
+/* ========================================
+   CARD COMPONENT
+   ======================================== */
+
+.card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   BADGE COMPONENT
+   ======================================== */
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Cairo', sans-serif;
+}
+
+.badge-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.badge-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.badge-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+/* ========================================
+   MODAL BODY SCROLL LOCK
+   ======================================== */
+
+/* ✅ منع التمرير عند فتح المودال */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  * {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   RTL SUPPORT
+   ======================================== */
+
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .form-group input,
+[dir="rtl"] .form-group textarea {
+  text-align: right;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* ✅ تحسين الأداء للرسوم المتحركة */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ✅ GPU acceleration للعناصر المتحركة */
+.card,
+.btn,
+.badge {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+     }
