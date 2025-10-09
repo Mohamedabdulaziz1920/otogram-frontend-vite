@@ -16,5 +16,5 @@ git init
 git add README.md
 git commit -m "first commit"
 git branch -M main
-git remote add origin https://github.com/Mohamedabdulaziz1920/otogram-frontend.git
+git remote add origin https://github.com/Mohamedabdulaziz1920/otogram-frontend-vite.git
 git push -u origin main
