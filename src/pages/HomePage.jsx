@@ -44,6 +44,16 @@ const HomePage = () => {
     return `${baseUrl}${url}`;
   };
 
+  // 🎲 دالة لخلط المصفوفة (Fisher-Yates Shuffle)
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const fetchVideos = useCallback(async () => {
     try {
       setLoading(true);
@@ -51,13 +61,15 @@ const HomePage = () => {
       const response = await api.get('/api/videos');
 
       if (response.data && Array.isArray(response.data)) {
-        setVideos(response.data);
+        // 🎲 خلط الفيديوهات بشكل عشوائي
+        const shuffledVideos = shuffleArray(response.data);
+        setVideos(shuffledVideos);
 
         if (user) {
           const userLikedVideos = new Set();
           const userLikedReplies = new Set();
           
-          response.data.forEach(video => {
+          shuffledVideos.forEach(video => {
             if (video.likes?.includes(user._id || user.id)) {
               userLikedVideos.add(video._id);
             }
@@ -102,6 +114,40 @@ const HomePage = () => {
     }
   }, [location.state, videos]);
 
+  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
+  useEffect(() => {
+    if (mainVideoRef.current) {
+      mainVideoRef.current.currentTime = 0;
+      
+      // محاولة التشغيل التلقائي
+      mainVideoRef.current.play()
+        .then(() => {
+          setIsMainPlaying(true);
+          console.log('✅ Main video playing automatically');
+        })
+        .catch(err => {
+          console.log('⚠️ Autoplay prevented:', err);
+          setIsMainPlaying(false);
+        });
+    }
+    
+    // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
+    if (replyVideoRef.current) {
+      replyVideoRef.current.pause();
+      replyVideoRef.current.currentTime = 0;
+      setIsReplyPlaying(false);
+    }
+  }, [activeVideoIndex]);
+
+  // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
+  useEffect(() => {
+    if (replyVideoRef.current) {
+      replyVideoRef.current.pause();
+      replyVideoRef.current.currentTime = 0;
+      setIsReplyPlaying(false);
+    }
+  }, [activeReplyIndex]);
+
   // Helper functions
   const goToNextReply = useCallback(() => {
     setActiveReplyIndex(prev => {
@@ -122,7 +168,7 @@ const HomePage = () => {
     });
   }, []);
 
-  // 🎮 التحكم في تشغيل الفيديو الرئيسي
+  // 🎮 التحكم في تشغيل الفيديو الرئيسي (اختياري - للنقر)
   const toggleMainVideo = () => {
     if (mainVideoRef.current) {
       if (isMainPlaying) {
@@ -143,7 +189,7 @@ const HomePage = () => {
     }
   };
 
-  // 🎮 التحكم في تشغيل فيديو الرد
+  // 🎮 التحكم في تشغيل فيديو الرد (بالنقر فقط)
   const toggleReplyVideo = () => {
     if (replyVideoRef.current) {
       if (isReplyPlaying) {
@@ -156,6 +202,7 @@ const HomePage = () => {
         setShowReplyPauseIcon(true);
         setTimeout(() => setShowReplyPauseIcon(false), 1000);
         
+        // إيقاف الفيديو الرئيسي عند تشغيل الرد
         if (mainVideoRef.current && isMainPlaying) {
           mainVideoRef.current.pause();
           setIsMainPlaying(false);
@@ -324,24 +371,6 @@ const HomePage = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
-
-  // 🎮 إيقاف الفيديوهات وإعادة تعيين الحالة عند تغيير الفيديو
-  useEffect(() => {
-    setIsMainPlaying(false);
-    setIsReplyPlaying(false);
-    setShowMainPauseIcon(false);
-    setShowReplyPauseIcon(false);
-    
-    if (mainVideoRef.current) {
-      mainVideoRef.current.pause();
-      mainVideoRef.current.currentTime = 0;
-    }
-    
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-    }
-  }, [activeVideoIndex, activeReplyIndex]);
 
   const toggleMute = () => {
     setIsMuted(prev => !prev);
@@ -534,6 +563,11 @@ const HomePage = () => {
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
       </button>
       
+      {/* Mute Toggle */}
+      <button className="mute-toggle" onClick={toggleMute}>
+        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+      </button>
+      
       <div className="content-wrapper">
         {/* Main Video Section - 50% */}
         <div className="main-video-section">
@@ -573,9 +607,7 @@ const HomePage = () => {
           </div>
 
           <div className="video-info">
-            <div className="user-info" onClick={() => navigateToProfile(currentVideo.user.username)}>
-              <span className="username">{currentVideo.user.username}</span>
-            </div>
+            {/* ❌ تم إزالة عرض اسم المستخدم */}
             <p className="video-description">{currentVideo.description}</p>
           </div>
 
@@ -682,12 +714,7 @@ const HomePage = () => {
               </div>
 
               <div className="reply-info">
-                <div 
-                  className="reply-user"
-                  onClick={() => navigateToProfile(currentVideo.replies[activeReplyIndex].user.username)}
-                >
-                  <span>{currentVideo.replies[activeReplyIndex].user.username}</span>
-                </div>
+                {/* ❌ تم إزالة عرض اسم المستخدم */}
                 <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
               </div>
 
