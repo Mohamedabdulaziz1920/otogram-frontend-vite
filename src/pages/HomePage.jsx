@@ -114,31 +114,50 @@ const HomePage = () => {
     }
   }, [location.state, videos]);
 
-  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
-  useEffect(() => {
-    if (mainVideoRef.current) {
-      mainVideoRef.current.currentTime = 0;
-      
-      // محاولة التشغيل التلقائي
+// 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
+useEffect(() => {
+  if (mainVideoRef.current) {
+    mainVideoRef.current.currentTime = 0;
+    
+    // محاولة التشغيل التلقائي
+    mainVideoRef.current.play()
+      .then(() => {
+        setIsMainPlaying(true);
+        console.log('✅ Main video playing automatically');
+      })
+      .catch(err => {
+        console.log('⚠️ Autoplay prevented:', err);
+        setIsMainPlaying(false);
+      });
+  }
+  
+  // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
+  if (replyVideoRef.current) {
+    replyVideoRef.current.pause();
+    replyVideoRef.current.currentTime = 0;
+    setIsReplyPlaying(false);
+  }
+}, [activeVideoIndex]);
+
+// 🚀 التشغيل التلقائي عند تحميل الصفحة لأول مرة
+useEffect(() => {
+  // الانتظار قليلاً للتأكد من تحميل الفيديو
+  const timer = setTimeout(() => {
+    if (mainVideoRef.current && videos.length > 0) {
       mainVideoRef.current.play()
         .then(() => {
           setIsMainPlaying(true);
-          console.log('✅ Main video playing automatically');
+          console.log('🎉 First video playing automatically on page load');
         })
         .catch(err => {
-          console.log('⚠️ Autoplay prevented:', err);
+          console.log('⚠️ Autoplay prevented on first load:', err);
           setIsMainPlaying(false);
         });
     }
-    
-    // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-      setIsReplyPlaying(false);
-    }
-  }, [activeVideoIndex]);
+  }, 500); // انتظار نصف ثانية
 
+  return () => clearTimeout(timer);
+}, [videos]); // يعمل عند تحميل الفيديوهات لأول مرة
   // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
   useEffect(() => {
     if (replyVideoRef.current) {
@@ -561,11 +580,6 @@ const HomePage = () => {
       {/* Theme Toggle */}
       <button className="theme-toggle" onClick={toggleTheme}>
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
-      </button>
-      
-      {/* Mute Toggle */}
-      <button className="mute-toggle" onClick={toggleMute}>
-        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
       </button>
       
       <div className="content-wrapper">
