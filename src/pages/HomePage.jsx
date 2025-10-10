@@ -18,7 +18,7 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // ✅ مكتوم افتراضياً
   
   // 🎮 States للتحكم في التشغيل
   const [isMainPlaying, setIsMainPlaying] = useState(false);
@@ -114,50 +114,62 @@ const HomePage = () => {
     }
   }, [location.state, videos]);
 
-// 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
-useEffect(() => {
-  if (mainVideoRef.current) {
-    mainVideoRef.current.currentTime = 0;
-    
-    // محاولة التشغيل التلقائي
-    mainVideoRef.current.play()
-      .then(() => {
-        setIsMainPlaying(true);
-        console.log('✅ Main video playing automatically');
-      })
-      .catch(err => {
-        console.log('⚠️ Autoplay prevented:', err);
-        setIsMainPlaying(false);
-      });
-  }
-  
-  // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
-  if (replyVideoRef.current) {
-    replyVideoRef.current.pause();
-    replyVideoRef.current.currentTime = 0;
-    setIsReplyPlaying(false);
-  }
-}, [activeVideoIndex]);
-
-// 🚀 التشغيل التلقائي عند تحميل الصفحة لأول مرة
-useEffect(() => {
-  // الانتظار قليلاً للتأكد من تحميل الفيديو
-  const timer = setTimeout(() => {
-    if (mainVideoRef.current && videos.length > 0) {
-      mainVideoRef.current.play()
-        .then(() => {
-          setIsMainPlaying(true);
-          console.log('🎉 First video playing automatically on page load');
-        })
-        .catch(err => {
-          console.log('⚠️ Autoplay prevented on first load:', err);
-          setIsMainPlaying(false);
-        });
+  // ✅ 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
+  useEffect(() => {
+    if (mainVideoRef.current) {
+      mainVideoRef.current.currentTime = 0;
+      mainVideoRef.current.muted = isMuted;
+      
+      const playPromise = mainVideoRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsMainPlaying(true);
+            console.log('✅ Main video playing');
+          })
+          .catch(err => {
+            console.log('⚠️ Autoplay prevented:', err.message);
+            setIsMainPlaying(false);
+          });
+      }
     }
-  }, 500); // انتظار نصف ثانية
+    
+    // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
+    if (replyVideoRef.current) {
+      replyVideoRef.current.pause();
+      replyVideoRef.current.currentTime = 0;
+      setIsReplyPlaying(false);
+    }
+  }, [activeVideoIndex, isMuted]);
 
-  return () => clearTimeout(timer);
-}, [videos]); // يعمل عند تحميل الفيديوهات لأول مرة
+  // ✅ 🚀 التشغيل التلقائي عند تحميل الصفحة لأول مرة
+  useEffect(() => {
+    if (videos.length === 0) return;
+    
+    const timer = setTimeout(() => {
+      if (mainVideoRef.current) {
+        mainVideoRef.current.muted = true;
+        
+        const playPromise = mainVideoRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsMainPlaying(true);
+              console.log('🎉 First video playing automatically (muted)');
+            })
+            .catch(err => {
+              console.log('⚠️ Autoplay prevented on first load:', err.message);
+              setIsMainPlaying(false);
+            });
+        }
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [videos.length]);
+
   // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
   useEffect(() => {
     if (replyVideoRef.current) {
@@ -187,7 +199,7 @@ useEffect(() => {
     });
   }, []);
 
-  // 🎮 التحكم في تشغيل الفيديو الرئيسي (اختياري - للنقر)
+  // 🎮 التحكم في تشغيل الفيديو الرئيسي
   const toggleMainVideo = () => {
     if (mainVideoRef.current) {
       if (isMainPlaying) {
@@ -208,7 +220,7 @@ useEffect(() => {
     }
   };
 
-  // 🎮 التحكم في تشغيل فيديو الرد (بالنقر فقط)
+  // 🎮 التحكم في تشغيل فيديو الرد
   const toggleReplyVideo = () => {
     if (replyVideoRef.current) {
       if (isReplyPlaying) {
@@ -391,10 +403,24 @@ useEffect(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
 
+  // ✅ تحديث toggleMute
   const toggleMute = () => {
-    setIsMuted(prev => !prev);
-    if (mainVideoRef.current) mainVideoRef.current.muted = !isMuted;
-    if (replyVideoRef.current) replyVideoRef.current.muted = !isMuted;
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    
+    if (mainVideoRef.current) {
+      mainVideoRef.current.muted = newMutedState;
+      // إذا كان الفيديو متوقفاً، شغّله
+      if (!isMainPlaying) {
+        mainVideoRef.current.play()
+          .then(() => setIsMainPlaying(true))
+          .catch(err => console.log('Play error:', err));
+      }
+    }
+    
+    if (replyVideoRef.current) {
+      replyVideoRef.current.muted = newMutedState;
+    }
   };
 
   const handleLikeMainVideo = async (videoId) => {
@@ -494,7 +520,6 @@ useEffect(() => {
     const replyOwnerId = reply.user._id || reply.user.id;
     const videoOwnerId = mainVideo.user._id || mainVideo.user.id;
     
-    // يمكن الحذف إذا كان صاحب الرد أو صاحب الفيديو الأصلي
     return userId === replyOwnerId || userId === videoOwnerId;
   };
 
@@ -511,7 +536,6 @@ useEffect(() => {
     try {
       await api.delete(`/api/videos/${replyToDelete.replyId}`);
       
-      // تحديث الفيديوهات لإزالة الرد المحذوف
       setVideos(prevVideos => 
         prevVideos.map(video => {
           if (video._id === replyToDelete.videoId) {
@@ -524,7 +548,6 @@ useEffect(() => {
         })
       );
       
-      // إعادة تعيين index الرد إذا كان آخر رد
       const currentVideoReplies = videos[activeVideoIndex].replies;
       if (currentVideoReplies.length > 1) {
         if (activeReplyIndex >= currentVideoReplies.length - 1 && activeReplyIndex > 0) {
@@ -582,8 +605,12 @@ useEffect(() => {
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
       </button>
       
-       {/* Mute Toggle */}
-      <button className="mute-toggle" onClick={toggleMute}>
+      {/* ✅ Mute Toggle - محدّث */}
+      <button 
+        className={`mute-toggle ${isMuted ? 'is-muted' : ''}`} 
+        onClick={toggleMute}
+        title={isMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
+      >
         {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
       </button>
       
@@ -591,6 +618,7 @@ useEffect(() => {
         {/* Main Video Section - 50% */}
         <div className="main-video-section">
           <div className="video-container" onClick={toggleMainVideo}>
+            {/* ✅ إضافة autoPlay و muted */}
             <video
               ref={mainVideoRef}
               src={getAssetUrl(currentVideo.videoUrl)}
@@ -598,6 +626,7 @@ useEffect(() => {
               loop
               muted={isMuted}
               playsInline
+              autoPlay
             />
             
             {/* Play/Pause Overlay */}
@@ -626,7 +655,6 @@ useEffect(() => {
           </div>
 
           <div className="video-info">
-            {/* ❌ تم إزالة عرض اسم المستخدم */}
             <p className="video-description">{currentVideo.description}</p>
           </div>
 
@@ -680,6 +708,7 @@ useEffect(() => {
           {currentVideo?.replies?.length > 0 ? (
             <div className="reply-video-container">
               <div className="reply-video-wrapper" onClick={toggleReplyVideo}>
+                {/* ✅ إضافة autoPlay و muted */}
                 <video
                   ref={replyVideoRef}
                   key={currentVideo.replies[activeReplyIndex]._id}
@@ -688,9 +717,10 @@ useEffect(() => {
                   loop
                   muted={isMuted}
                   playsInline
+                  autoPlay
                 />
 
-                {/* 🗑️ زر الحذف - يظهر لصاحب الرد أو صاحب الفيديو */}
+                {/* 🗑️ زر الحذف */}
                 {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
                   <button
                     className="delete-reply-btn"
@@ -733,7 +763,6 @@ useEffect(() => {
               </div>
 
               <div className="reply-info">
-                {/* ❌ تم إزالة عرض اسم المستخدم */}
                 <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
               </div>
 
