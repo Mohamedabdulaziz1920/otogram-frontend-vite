@@ -563,11 +563,6 @@ const HomePage = () => {
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
       </button>
       
-      {/* Mute Toggle */}
-      <button className="mute-toggle" onClick={toggleMute}>
-        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-      </button>
-      
       <div className="content-wrapper">
         {/* Main Video Section - 50% */}
         <div className="main-video-section">
