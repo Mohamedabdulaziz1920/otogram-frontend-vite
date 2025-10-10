@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  FaHeart, FaComment, FaChevronLeft, FaChevronRight,
-  FaVolumeUp, FaVolumeMute, FaMoon, FaSun, FaTrash
+import {
+FaHeart, FaComment, FaChevronLeft, FaChevronRight,
+FaVolumeUp, FaVolumeMute, FaMoon, FaSun, FaTrash
 } from 'react-icons/fa';
 import NavigationBar from '../components/NavigationBar';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -10,627 +10,731 @@ import { useTheme } from '../context/ThemeContext';
 import './HomePage.css';
 
 const HomePage = () => {
-  const location = useLocation();
-  const [videos, setVideos] = useState([]);
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
-  const [activeReplyIndex, setActiveReplyIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [likedVideos, setLikedVideos] = useState(new Set());
-  const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(true); // ✅ مكتوم افتراضياً
-  
-  // 🎮 States للتحكم في التشغيل
-  const [isMainPlaying, setIsMainPlaying] = useState(false);
-  const [isReplyPlaying, setIsReplyPlaying] = useState(false);
-  const [showMainPauseIcon, setShowMainPauseIcon] = useState(false);
-  const [showReplyPauseIcon, setShowReplyPauseIcon] = useState(false);
+const location = useLocation();
+const [videos, setVideos] = useState([]);
+const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+const [activeReplyIndex, setActiveReplyIndex] = useState(0);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+const [likedVideos, setLikedVideos] = useState(new Set());
+const [likedReplies, setLikedReplies] = useState(new Set());
+const [isMuted, setIsMuted] = useState(false);
 
-  // 🗑️ States لحذف الردود
-  const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
-  const [replyToDelete, setReplyToDelete] = useState(null);
+// 🎮 States للتحكم في التشغيل
+const [isMainPlaying, setIsMainPlaying] = useState(false);
+const [isReplyPlaying, setIsReplyPlaying] = useState(false);
+const [showMainPauseIcon, setShowMainPauseIcon] = useState(false);
+const [showReplyPauseIcon, setShowReplyPauseIcon] = useState(false);
 
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const mainVideoRef = useRef(null);
-  const replyVideoRef = useRef(null);
-  const lastScrollTime = useRef(0);
+// 🗑️ States لحذف الردود
+const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
+const [replyToDelete, setReplyToDelete] = useState(null);
 
-  const getAssetUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    return `${baseUrl}${url}`;
-  };
+const navigate = useNavigate();
+const { user } = useAuth();
+const { theme, toggleTheme } = useTheme();
+const mainVideoRef = useRef(null);
+const replyVideoRef = useRef(null);
+const lastScrollTime = useRef(0);
 
-  // 🎲 دالة لخلط المصفوفة (Fisher-Yates Shuffle)
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+const getAssetUrl = (url) => {
+if (!url) return '';
+if (url.startsWith('http')) return url;
+const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+return ${baseUrl}${url};
+};
+
+// 🎲 دالة لخلط المصفوفة (Fisher-Yates Shuffle)
+const shuffleArray = (array) => {
+const shuffled = [...array];
+for (let i = shuffled.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+}
+return shuffled;
+};
+
+const fetchVideos = useCallback(async () => {
+try {
+setLoading(true);
+setError(null);
+const response = await api.get('/api/videos');
+
+text
+
+  if (response.data && Array.isArray(response.data)) {
+    // 🎲 خلط الفيديوهات بشكل عشوائي
+    const shuffledVideos = shuffleArray(response.data);
+    setVideos(shuffledVideos);
+
+    if (user) {
+      const userLikedVideos = new Set();
+      const userLikedReplies = new Set();
+      
+      shuffledVideos.forEach(video => {
+        if (video.likes?.includes(user._id || user.id)) {
+          userLikedVideos.add(video._id);
+        }
+        video.replies?.forEach(reply => {
+          if (reply.likes?.includes(user._id || user.id)) {
+            userLikedReplies.add(reply._id);
+          }
+        });
+      });
+      
+      setLikedVideos(userLikedVideos);
+      setLikedReplies(userLikedReplies);
     }
-    return shuffled;
-  };
+  }
+} catch (error) {
+  console.error('Error fetching videos:', error);
+  setError(error.message || 'فشل في تحميل الفيديوهات');
+} finally {
+  setLoading(false);
+}
+}, [user]);
 
-  const fetchVideos = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get('/api/videos');
+// 1️⃣ جلب الفيديوهات
+useEffect(() => {
+fetchVideos();
+}, [fetchVideos]);
 
-      if (response.data && Array.isArray(response.data)) {
-        // 🎲 خلط الفيديوهات بشكل عشوائي
-        const shuffledVideos = shuffleArray(response.data);
-        setVideos(shuffledVideos);
+// 2️⃣ التوجيه التلقائي للفيديو
+useEffect(() => {
+if (location.state?.scrollToVideoId && videos.length > 0) {
+const videoIndex = videos.findIndex(v => v._id === location.state.scrollToVideoId);
 
-        if (user) {
-          const userLikedVideos = new Set();
-          const userLikedReplies = new Set();
-          
-          shuffledVideos.forEach(video => {
-            if (video.likes?.includes(user._id || user.id)) {
-              userLikedVideos.add(video._id);
+text
+
+  if (videoIndex !== -1) {
+    console.log('🎯 Found video at index:', videoIndex);
+    setActiveVideoIndex(videoIndex);
+    setActiveReplyIndex(0);
+    
+    window.history.replaceState({}, document.title);
+  } else {
+    console.log('⚠️ Video not found in current list');
+  }
+}
+}, [location.state, videos]);
+
+// 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
+useEffect(() => {
+if (mainVideoRef.current) {
+mainVideoRef.current.currentTime = 0;
+
+text
+
+// محاولة التشغيل التلقائي
+mainVideoRef.current.play()
+  .then(() => {
+    setIsMainPlaying(true);
+    console.log('✅ Main video playing automatically');
+  })
+  .catch(err => {
+    console.log('⚠️ Autoplay prevented:', err);
+    setIsMainPlaying(false);
+  });
+}
+
+// إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
+if (replyVideoRef.current) {
+replyVideoRef.current.pause();
+replyVideoRef.current.currentTime = 0;
+setIsReplyPlaying(false);
+}
+}, [activeVideoIndex]);
+
+// 🚀 التشغيل التلقائي عند تحميل الصفحة لأول مرة
+useEffect(() => {
+// الانتظار قليلاً للتأكد من تحميل الفيديو
+const timer = setTimeout(() => {
+if (mainVideoRef.current && videos.length > 0) {
+mainVideoRef.current.play()
+.then(() => {
+setIsMainPlaying(true);
+console.log('🎉 First video playing automatically on page load');
+})
+.catch(err => {
+console.log('⚠️ Autoplay prevented on first load:', err);
+setIsMainPlaying(false);
+});
+}
+}, 500); // انتظار نصف ثانية
+
+return () => clearTimeout(timer);
+}, [videos]); // يعمل عند تحميل الفيديوهات لأول مرة
+// 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
+useEffect(() => {
+if (replyVideoRef.current) {
+replyVideoRef.current.pause();
+replyVideoRef.current.currentTime = 0;
+setIsReplyPlaying(false);
+}
+}, [activeReplyIndex]);
+
+// Helper functions
+const goToNextReply = useCallback(() => {
+setActiveReplyIndex(prev => {
+const currentVideo = videos[activeVideoIndex];
+if (currentVideo?.replies && prev < currentVideo.replies.length - 1) {
+return prev + 1;
+}
+return prev;
+});
+}, [videos, activeVideoIndex]);
+
+const goToPrevReply = useCallback(() => {
+setActiveReplyIndex(prev => {
+if (prev > 0) {
+return prev - 1;
+}
+return prev;
+});
+}, []);
+
+// 🎮 التحكم في تشغيل الفيديو الرئيسي (اختياري - للنقر)
+const toggleMainVideo = () => {
+if (mainVideoRef.current) {
+if (isMainPlaying) {
+mainVideoRef.current.pause();
+setIsMainPlaying(false);
+} else {
+mainVideoRef.current.play();
+setIsMainPlaying(true);
+
+text
+
+    setShowMainPauseIcon(true);
+    setTimeout(() => setShowMainPauseIcon(false), 1000);
+    
+    if (replyVideoRef.current && isReplyPlaying) {
+      replyVideoRef.current.pause();
+      setIsReplyPlaying(false);
+    }
+  }
+}
+};
+
+// 🎮 التحكم في تشغيل فيديو الرد (بالنقر فقط)
+const toggleReplyVideo = () => {
+if (replyVideoRef.current) {
+if (isReplyPlaying) {
+replyVideoRef.current.pause();
+setIsReplyPlaying(false);
+} else {
+replyVideoRef.current.play();
+setIsReplyPlaying(true);
+
+text
+
+    setShowReplyPauseIcon(true);
+    setTimeout(() => setShowReplyPauseIcon(false), 1000);
+    
+    // إيقاف الفيديو الرئيسي عند تشغيل الرد
+    if (mainVideoRef.current && isMainPlaying) {
+      mainVideoRef.current.pause();
+      setIsMainPlaying(false);
+    }
+  }
+}
+};
+
+// ✅ Touch events for mobile - محسّن للردود
+useEffect(() => {
+let touchStartY = 0;
+let touchStartX = 0;
+let touchStartTime = 0;
+
+text
+
+const handleMainTouchStart = (e) => {
+  touchStartY = e.touches[0].clientY;
+  touchStartX = e.touches[0].clientX;
+  touchStartTime = Date.now();
+};
+
+const handleMainTouchEnd = (e) => {
+  const touchEndY = e.changedTouches[0].clientY;
+  const touchEndTime = Date.now();
+  const deltaY = touchStartY - touchEndY;
+  const deltaTime = touchEndTime - touchStartTime;
+
+  const velocity = Math.abs(deltaY) / deltaTime;
+
+  if (Math.abs(deltaY) > 50 || velocity > 0.3) {
+    if (deltaY > 0) {
+      if (activeVideoIndex < videos.length - 1) {
+        setActiveVideoIndex(prev => prev + 1);
+        setActiveReplyIndex(0);
+      }
+    } else {
+      if (activeVideoIndex > 0) {
+        setActiveVideoIndex(prev => prev - 1);
+        setActiveReplyIndex(0);
+      }
+    }
+  }
+};
+
+const handleReplyTouchStart = (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+};
+
+const handleReplyTouchEnd = (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  const touchEndTime = Date.now();
+  
+  const deltaX = touchStartX - touchEndX;
+  const deltaY = touchStartY - touchEndY;
+  const deltaTime = touchEndTime - touchStartTime;
+
+  const velocityY = Math.abs(deltaY) / deltaTime;
+  const velocityX = Math.abs(deltaX) / deltaTime;
+
+  const isVerticalSwipe = Math.abs(deltaY) > Math.abs(deltaX);
+  const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+
+  if (isVerticalSwipe && (Math.abs(deltaY) > 50 || velocityY > 0.3)) {
+    if (deltaY > 0) {
+      if (activeVideoIndex < videos.length - 1) {
+        setActiveVideoIndex(prev => prev + 1);
+        setActiveReplyIndex(0);
+      }
+    } else {
+      if (activeVideoIndex > 0) {
+        setActiveVideoIndex(prev => prev - 1);
+        setActiveReplyIndex(0);
+      }
+    }
+  }
+  else if (isHorizontalSwipe && (Math.abs(deltaX) > 50 || velocityX > 0.3)) {
+    if (deltaX > 0) {
+      goToNextReply();
+    } else {
+      goToPrevReply();
+    }
+  }
+};
+
+const mainSection = document.querySelector('.main-video-section');
+const replySection = document.querySelector('.replies-section');
+
+if (mainSection) {
+  mainSection.addEventListener('touchstart', handleMainTouchStart, { passive: true });
+  mainSection.addEventListener('touchend', handleMainTouchEnd, { passive: true });
+}
+
+if (replySection) {
+  replySection.addEventListener('touchstart', handleReplyTouchStart, { passive: true });
+  replySection.addEventListener('touchend', handleReplyTouchEnd, { passive: true });
+}
+
+return () => {
+  if (mainSection) {
+    mainSection.removeEventListener('touchstart', handleMainTouchStart);
+    mainSection.removeEventListener('touchend', handleMainTouchEnd);
+  }
+  if (replySection) {
+    replySection.removeEventListener('touchstart', handleReplyTouchStart);
+    replySection.removeEventListener('touchend', handleReplyTouchEnd);
+  }
+};
+}, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
+
+// ✅ Scroll handler for vertical navigation
+useEffect(() => {
+const handleWheel = (e) => {
+const now = Date.now();
+if (now - lastScrollTime.current < 500) return;
+
+text
+
+  const delta = e.deltaY;
+  
+  if (Math.abs(delta) > 30) {
+    if (delta > 0) {
+      if (activeVideoIndex < videos.length - 1) {
+        setActiveVideoIndex(prev => prev + 1);
+        setActiveReplyIndex(0);
+        lastScrollTime.current = now;
+      }
+    } else {
+      if (activeVideoIndex > 0) {
+        setActiveVideoIndex(prev => prev - 1);
+        setActiveReplyIndex(0);
+        lastScrollTime.current = now;
+      }
+    }
+  }
+};
+
+window.addEventListener('wheel', handleWheel, { passive: true });
+return () => window.removeEventListener('wheel', handleWheel);
+}, [activeVideoIndex, videos.length]);
+
+// ✅ Keyboard navigation
+useEffect(() => {
+const handleKeyDown = (e) => {
+switch(e.key) {
+case 'ArrowDown':
+if (activeVideoIndex < videos.length - 1) {
+setActiveVideoIndex(prev => prev + 1);
+setActiveReplyIndex(0);
+}
+break;
+case 'ArrowUp':
+if (activeVideoIndex > 0) {
+setActiveVideoIndex(prev => prev - 1);
+setActiveReplyIndex(0);
+}
+break;
+case 'ArrowRight':
+goToPrevReply();
+break;
+case 'ArrowLeft':
+goToNextReply();
+break;
+}
+};
+
+text
+
+window.addEventListener('keydown', handleKeyDown);
+return () => window.removeEventListener('keydown', handleKeyDown);
+}, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
+
+const toggleMute = () => {
+setIsMuted(prev => !prev);
+if (mainVideoRef.current) mainVideoRef.current.muted = !isMuted;
+if (replyVideoRef.current) replyVideoRef.current.muted = !isMuted;
+};
+
+const handleLikeMainVideo = async (videoId) => {
+if (!user) {
+navigate('/login');
+return;
+}
+
+text
+
+try {
+  const response = await api.post(`/api/videos/${videoId}/like`);
+  const liked = response.data.liked;
+  
+  setLikedVideos(prev => {
+    const newSet = new Set(prev);
+    liked ? newSet.add(videoId) : newSet.delete(videoId);
+    return newSet;
+  });
+  
+  setVideos(prevVideos => 
+    prevVideos.map(video => {
+      if (video._id === videoId) {
+        const userId = user._id || user.id;
+        return {
+          ...video,
+          likes: liked 
+            ? [...(video.likes || []), userId]
+            : (video.likes || []).filter(id => id !== userId)
+        };
+      }
+      return video;
+    })
+  );
+} catch (error) {
+  console.error('Like error:', error);
+}
+};
+
+const handleLikeReply = async (replyId, parentId) => {
+if (!user) {
+navigate('/login');
+return;
+}
+
+text
+
+try {
+  const response = await api.post(`/api/videos/${replyId}/like`);
+  const liked = response.data.liked;
+  
+  setLikedReplies(prev => {
+    const newSet = new Set(prev);
+    liked ? newSet.add(replyId) : newSet.delete(replyId);
+    return newSet;
+  });
+  
+  setVideos(prevVideos => 
+    prevVideos.map(video => {
+      if (video._id === parentId) {
+        const userId = user._id || user.id;
+        return {
+          ...video,
+          replies: video.replies.map(reply => {
+            if (reply._id === replyId) {
+              return {
+                ...reply,
+                likes: liked 
+                  ? [...(reply.likes || []), userId]
+                  : (reply.likes || []).filter(id => id !== userId)
+              };
             }
-            video.replies?.forEach(reply => {
-              if (reply.likes?.includes(user._id || user.id)) {
-                userLikedReplies.add(reply._id);
-              }
-            });
-          });
-          
-          setLikedVideos(userLikedVideos);
-          setLikedReplies(userLikedReplies);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching videos:', error);
-      setError(error.message || 'فشل في تحميل الفيديوهات');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  // 1️⃣ جلب الفيديوهات
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
-  // 2️⃣ التوجيه التلقائي للفيديو
-  useEffect(() => {
-    if (location.state?.scrollToVideoId && videos.length > 0) {
-      const videoIndex = videos.findIndex(v => v._id === location.state.scrollToVideoId);
-      
-      if (videoIndex !== -1) {
-        console.log('🎯 Found video at index:', videoIndex);
-        setActiveVideoIndex(videoIndex);
-        setActiveReplyIndex(0);
-        
-        window.history.replaceState({}, document.title);
-      } else {
-        console.log('⚠️ Video not found in current list');
-      }
-    }
-  }, [location.state, videos]);
-
-  // ✅ 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
-  useEffect(() => {
-    if (mainVideoRef.current) {
-      mainVideoRef.current.currentTime = 0;
-      mainVideoRef.current.muted = isMuted;
-      
-      const playPromise = mainVideoRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsMainPlaying(true);
-            console.log('✅ Main video playing');
+            return reply;
           })
-          .catch(err => {
-            console.log('⚠️ Autoplay prevented:', err.message);
-            setIsMainPlaying(false);
-          });
+        };
       }
-    }
-    
-    // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-      setIsReplyPlaying(false);
-    }
-  }, [activeVideoIndex, isMuted]);
+      return video;
+    })
+  );
+} catch (error) {
+  console.error('Like reply error:', error);
+}
+};
 
-  // ✅ 🚀 التشغيل التلقائي عند تحميل الصفحة لأول مرة
-  useEffect(() => {
-    if (videos.length === 0) return;
-    
-    const timer = setTimeout(() => {
-      if (mainVideoRef.current) {
-        mainVideoRef.current.muted = true;
-        
-        const playPromise = mainVideoRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsMainPlaying(true);
-              console.log('🎉 First video playing automatically (muted)');
-            })
-            .catch(err => {
-              console.log('⚠️ Autoplay prevented on first load:', err.message);
-              setIsMainPlaying(false);
-            });
-        }
+const handleReply = (videoId) => {
+if (!user) {
+sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+navigate('/login');
+return;
+}
+navigate(/upload?replyTo=${videoId});
+};
+
+const navigateToProfile = (username) => navigate(/profile/${username});
+
+// 🗑️ التحقق من صلاحية حذف الرد
+const canDeleteReply = (reply, mainVideo) => {
+if (!user) return false;
+
+text
+
+const userId = user._id || user.id;
+const replyOwnerId = reply.user._id || reply.user.id;
+const videoOwnerId = mainVideo.user._id || mainVideo.user.id;
+
+// يمكن الحذف إذا كان صاحب الرد أو صاحب الفيديو الأصلي
+return userId === replyOwnerId || userId === videoOwnerId;
+};
+
+// 🗑️ فتح modal تأكيد الحذف
+const confirmDeleteReply = (replyId, videoId) => {
+setReplyToDelete({ replyId, videoId });
+setShowDeleteReplyModal(true);
+};
+
+// 🗑️ حذف الرد
+const handleDeleteReply = async () => {
+if (!replyToDelete) return;
+
+text
+
+try {
+  await api.delete(`/api/videos/${replyToDelete.replyId}`);
+  
+  // تحديث الفيديوهات لإزالة الرد المحذوف
+  setVideos(prevVideos => 
+    prevVideos.map(video => {
+      if (video._id === replyToDelete.videoId) {
+        return {
+          ...video,
+          replies: video.replies.filter(r => r._id !== replyToDelete.replyId)
+        };
       }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [videos.length]);
-
-  // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
-  useEffect(() => {
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-      setIsReplyPlaying(false);
-    }
-  }, [activeReplyIndex]);
-
-  // Helper functions
-  const goToNextReply = useCallback(() => {
-    setActiveReplyIndex(prev => {
-      const currentVideo = videos[activeVideoIndex];
-      if (currentVideo?.replies && prev < currentVideo.replies.length - 1) {
-        return prev + 1;
-      }
-      return prev;
-    });
-  }, [videos, activeVideoIndex]);
-
-  const goToPrevReply = useCallback(() => {
-    setActiveReplyIndex(prev => {
-      if (prev > 0) {
-        return prev - 1;
-      }
-      return prev;
-    });
-  }, []);
-
-  // 🎮 التحكم في تشغيل الفيديو الرئيسي
-  const toggleMainVideo = () => {
-    if (mainVideoRef.current) {
-      if (isMainPlaying) {
-        mainVideoRef.current.pause();
-        setIsMainPlaying(false);
-      } else {
-        mainVideoRef.current.play();
-        setIsMainPlaying(true);
-        
-        setShowMainPauseIcon(true);
-        setTimeout(() => setShowMainPauseIcon(false), 1000);
-        
-        if (replyVideoRef.current && isReplyPlaying) {
-          replyVideoRef.current.pause();
-          setIsReplyPlaying(false);
-        }
-      }
-    }
-  };
-
-  // 🎮 التحكم في تشغيل فيديو الرد
-  const toggleReplyVideo = () => {
-    if (replyVideoRef.current) {
-      if (isReplyPlaying) {
-        replyVideoRef.current.pause();
-        setIsReplyPlaying(false);
-      } else {
-        replyVideoRef.current.play();
-        setIsReplyPlaying(true);
-        
-        setShowReplyPauseIcon(true);
-        setTimeout(() => setShowReplyPauseIcon(false), 1000);
-        
-        // إيقاف الفيديو الرئيسي عند تشغيل الرد
-        if (mainVideoRef.current && isMainPlaying) {
-          mainVideoRef.current.pause();
-          setIsMainPlaying(false);
-        }
-      }
-    }
-  };
-
-  // ✅ Touch events for mobile - محسّن للردود
-  useEffect(() => {
-    let touchStartY = 0;
-    let touchStartX = 0;
-    let touchStartTime = 0;
-
-    const handleMainTouchStart = (e) => {
-      touchStartY = e.touches[0].clientY;
-      touchStartX = e.touches[0].clientX;
-      touchStartTime = Date.now();
-    };
-
-    const handleMainTouchEnd = (e) => {
-      const touchEndY = e.changedTouches[0].clientY;
-      const touchEndTime = Date.now();
-      const deltaY = touchStartY - touchEndY;
-      const deltaTime = touchEndTime - touchStartTime;
-
-      const velocity = Math.abs(deltaY) / deltaTime;
-
-      if (Math.abs(deltaY) > 50 || velocity > 0.3) {
-        if (deltaY > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-          }
-        }
-      }
-    };
-
-    const handleReplyTouchStart = (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartTime = Date.now();
-    };
-
-    const handleReplyTouchEnd = (e) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
-      const touchEndTime = Date.now();
-      
-      const deltaX = touchStartX - touchEndX;
-      const deltaY = touchStartY - touchEndY;
-      const deltaTime = touchEndTime - touchStartTime;
-
-      const velocityY = Math.abs(deltaY) / deltaTime;
-      const velocityX = Math.abs(deltaX) / deltaTime;
-
-      const isVerticalSwipe = Math.abs(deltaY) > Math.abs(deltaX);
-      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-
-      if (isVerticalSwipe && (Math.abs(deltaY) > 50 || velocityY > 0.3)) {
-        if (deltaY > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-          }
-        }
-      }
-      else if (isHorizontalSwipe && (Math.abs(deltaX) > 50 || velocityX > 0.3)) {
-        if (deltaX > 0) {
-          goToNextReply();
-        } else {
-          goToPrevReply();
-        }
-      }
-    };
-
-    const mainSection = document.querySelector('.main-video-section');
-    const replySection = document.querySelector('.replies-section');
-
-    if (mainSection) {
-      mainSection.addEventListener('touchstart', handleMainTouchStart, { passive: true });
-      mainSection.addEventListener('touchend', handleMainTouchEnd, { passive: true });
-    }
-
-    if (replySection) {
-      replySection.addEventListener('touchstart', handleReplyTouchStart, { passive: true });
-      replySection.addEventListener('touchend', handleReplyTouchEnd, { passive: true });
-    }
-
-    return () => {
-      if (mainSection) {
-        mainSection.removeEventListener('touchstart', handleMainTouchStart);
-        mainSection.removeEventListener('touchend', handleMainTouchEnd);
-      }
-      if (replySection) {
-        replySection.removeEventListener('touchstart', handleReplyTouchStart);
-        replySection.removeEventListener('touchend', handleReplyTouchEnd);
-      }
-    };
-  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
-
-  // ✅ Scroll handler for vertical navigation
-  useEffect(() => {
-    const handleWheel = (e) => {
-      const now = Date.now();
-      if (now - lastScrollTime.current < 500) return;
-      
-      const delta = e.deltaY;
-      
-      if (Math.abs(delta) > 30) {
-        if (delta > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-            lastScrollTime.current = now;
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-            lastScrollTime.current = now;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [activeVideoIndex, videos.length]);
-
-  // ✅ Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch(e.key) {
-        case 'ArrowDown':
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-          }
-          break;
-        case 'ArrowUp':
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-          }
-          break;
-        case 'ArrowRight':
-          goToPrevReply();
-          break;
-        case 'ArrowLeft':
-          goToNextReply();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
-
-  // ✅ تحديث toggleMute
-  const toggleMute = () => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    
-    if (mainVideoRef.current) {
-      mainVideoRef.current.muted = newMutedState;
-      // إذا كان الفيديو متوقفاً، شغّله
-      if (!isMainPlaying) {
-        mainVideoRef.current.play()
-          .then(() => setIsMainPlaying(true))
-          .catch(err => console.log('Play error:', err));
-      }
-    }
-    
-    if (replyVideoRef.current) {
-      replyVideoRef.current.muted = newMutedState;
-    }
-  };
-
-  const handleLikeMainVideo = async (videoId) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const response = await api.post(`/api/videos/${videoId}/like`);
-      const liked = response.data.liked;
-      
-      setLikedVideos(prev => {
-        const newSet = new Set(prev);
-        liked ? newSet.add(videoId) : newSet.delete(videoId);
-        return newSet;
-      });
-      
-      setVideos(prevVideos => 
-        prevVideos.map(video => {
-          if (video._id === videoId) {
-            const userId = user._id || user.id;
-            return {
-              ...video,
-              likes: liked 
-                ? [...(video.likes || []), userId]
-                : (video.likes || []).filter(id => id !== userId)
-            };
-          }
-          return video;
-        })
-      );
-    } catch (error) {
-      console.error('Like error:', error);
-    }
-  };
-
-  const handleLikeReply = async (replyId, parentId) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const response = await api.post(`/api/videos/${replyId}/like`);
-      const liked = response.data.liked;
-      
-      setLikedReplies(prev => {
-        const newSet = new Set(prev);
-        liked ? newSet.add(replyId) : newSet.delete(replyId);
-        return newSet;
-      });
-      
-      setVideos(prevVideos => 
-        prevVideos.map(video => {
-          if (video._id === parentId) {
-            const userId = user._id || user.id;
-            return {
-              ...video,
-              replies: video.replies.map(reply => {
-                if (reply._id === replyId) {
-                  return {
-                    ...reply,
-                    likes: liked 
-                      ? [...(reply.likes || []), userId]
-                      : (reply.likes || []).filter(id => id !== userId)
-                  };
-                }
-                return reply;
-              })
-            };
-          }
-          return video;
-        })
-      );
-    } catch (error) {
-      console.error('Like reply error:', error);
-    }
-  };
-
-  const handleReply = (videoId) => {
-    if (!user) {
-      sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-      navigate('/login');
-      return;
-    }
-    navigate(`/upload?replyTo=${videoId}`);
-  };
-
-  const navigateToProfile = (username) => navigate(`/profile/${username}`);
-
-  // 🗑️ التحقق من صلاحية حذف الرد
-  const canDeleteReply = (reply, mainVideo) => {
-    if (!user) return false;
-    
-    const userId = user._id || user.id;
-    const replyOwnerId = reply.user._id || reply.user.id;
-    const videoOwnerId = mainVideo.user._id || mainVideo.user.id;
-    
-    return userId === replyOwnerId || userId === videoOwnerId;
-  };
-
-  // 🗑️ فتح modal تأكيد الحذف
-  const confirmDeleteReply = (replyId, videoId) => {
-    setReplyToDelete({ replyId, videoId });
-    setShowDeleteReplyModal(true);
-  };
-
-  // 🗑️ حذف الرد
-  const handleDeleteReply = async () => {
-    if (!replyToDelete) return;
-    
-    try {
-      await api.delete(`/api/videos/${replyToDelete.replyId}`);
-      
-      setVideos(prevVideos => 
-        prevVideos.map(video => {
-          if (video._id === replyToDelete.videoId) {
-            return {
-              ...video,
-              replies: video.replies.filter(r => r._id !== replyToDelete.replyId)
-            };
-          }
-          return video;
-        })
-      );
-      
-      const currentVideoReplies = videos[activeVideoIndex].replies;
-      if (currentVideoReplies.length > 1) {
-        if (activeReplyIndex >= currentVideoReplies.length - 1 && activeReplyIndex > 0) {
-          setActiveReplyIndex(prev => prev - 1);
-        }
-      } else {
-        setActiveReplyIndex(0);
-      }
-      
-      setShowDeleteReplyModal(false);
-      setReplyToDelete(null);
-      
-      console.log('✅ تم حذف الرد بنجاح');
-    } catch (error) {
-      console.error('❌ Error deleting reply:', error);
-      alert(error.response?.data?.error || 'فشل حذف الرد');
-    }
-  };
-
-  const currentVideo = videos[activeVideoIndex];
-
-  if (loading) return (
-    <div className="loading-container">
-      <div className="loading-wrapper">
-        <div className="loading-spinner"></div>
-        <p>جاري تحميل الفيديوهات...</p>
-      </div>
-    </div>
+      return video;
+    })
   );
   
-  if (error) return (
-    <div className="error-container">
-      <div className="error-wrapper">
-        <h2>خطأ في التحميل</h2>
-        <p>{error}</p>
-        <button onClick={fetchVideos} className="retry-btn">إعادة المحاولة</button>
-      </div>
-    </div>
-  );
+  // إعادة تعيين index الرد إذا كان آخر رد
+  const currentVideoReplies = videos[activeVideoIndex].replies;
+  if (currentVideoReplies.length > 1) {
+    if (activeReplyIndex >= currentVideoReplies.length - 1 && activeReplyIndex > 0) {
+      setActiveReplyIndex(prev => prev - 1);
+    }
+  } else {
+    setActiveReplyIndex(0);
+  }
   
-  if (!videos?.length) return (
-    <div className="empty-state-container">
-      <div className="empty-wrapper">
-        <h2>لا توجد فيديوهات</h2>
-        <p>كن أول من يشارك محتوى!</p>
-      </div>
-      <NavigationBar currentPage="home" />
-    </div>
-  );
+  setShowDeleteReplyModal(false);
+  setReplyToDelete(null);
+  
+  console.log('✅ تم حذف الرد بنجاح');
+} catch (error) {
+  console.error('❌ Error deleting reply:', error);
+  alert(error.response?.data?.error || 'فشل حذف الرد');
+}
+};
 
-  return (
-    <div className="home-page">
-      {/* Theme Toggle */}
-      <button className="theme-toggle" onClick={toggleTheme}>
-        {theme === 'dark' ? <FaSun /> : <FaMoon />}
-      </button>
-      
-      {/* ✅ Mute Toggle - محدّث */}
-      <button 
-        className={`mute-toggle ${isMuted ? 'is-muted' : ''}`} 
-        onClick={toggleMute}
-        title={isMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
-      >
-        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-      </button>
-      
-      <div className="content-wrapper">
-        {/* Main Video Section - 50% */}
-        <div className="main-video-section">
-          <div className="video-container" onClick={toggleMainVideo}>
-            {/* ✅ إضافة autoPlay و muted */}
+const currentVideo = videos[activeVideoIndex];
+
+if (loading) return (
+<div className="loading-container">
+<div className="loading-wrapper">
+<div className="loading-spinner"></div>
+<p>جاري تحميل الفيديوهات...</p>
+</div>
+</div>
+);
+
+if (error) return (
+<div className="error-container">
+<div className="error-wrapper">
+<h2>خطأ في التحميل</h2>
+<p>{error}</p>
+<button onClick={fetchVideos} className="retry-btn">إعادة المحاولة</button>
+</div>
+</div>
+);
+
+if (!videos?.length) return (
+<div className="empty-state-container">
+<div className="empty-wrapper">
+<h2>لا توجد فيديوهات</h2>
+<p>كن أول من يشارك محتوى!</p>
+</div>
+<NavigationBar currentPage="home" />
+</div>
+);
+
+return (
+<div className="home-page">
+{/* Theme Toggle */}
+<button className="theme-toggle" onClick={toggleTheme}>
+{theme === 'dark' ? <FaSun /> : <FaMoon />}
+</button>
+
+text
+
+   {/* Mute Toggle */}
+  <button className="mute-toggle" onClick={toggleMute}>
+    {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+  </button>
+  
+  <div className="content-wrapper">
+    {/* Main Video Section - 50% */}
+    <div className="main-video-section">
+      <div className="video-container" onClick={toggleMainVideo}>
+        <video
+          ref={mainVideoRef}
+          src={getAssetUrl(currentVideo.videoUrl)}
+          className="video-player"
+          loop
+          muted={isMuted}
+          playsInline
+        />
+        
+        {/* Play/Pause Overlay */}
+        {!isMainPlaying && (
+          <div className="play-overlay">
+            <div className="play-button">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* Pause Indicator */}
+        {isMainPlaying && showMainPauseIcon && (
+          <div className="pause-indicator">
+            <div className="pause-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
+            </div>
+          </div>
+        )}
+        
+        <div className="video-gradient"></div>
+      </div>
+
+      <div className="video-info">
+        {/* ❌ تم إزالة عرض اسم المستخدم */}
+        <p className="video-description">{currentVideo.description}</p>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="action-buttons">
+        <div 
+          className="action-btn-unified profile-btn"
+          onClick={() => navigateToProfile(currentVideo.user.username)}
+        >
+          <img 
+            src={getAssetUrl(currentVideo.user.profileImage) || '/default-avatar.png'} 
+            alt={currentVideo.user.username}
+            className="profile-image"
+          />
+        </div>
+
+        <button 
+          className={`action-btn-unified ${likedVideos.has(currentVideo._id) ? 'liked' : ''}`}
+          onClick={() => handleLikeMainVideo(currentVideo._id)}
+        >
+          <FaHeart />
+          <span className="count">{currentVideo.likes?.length || 0}</span>
+        </button>
+
+        <button 
+          className="action-btn-unified"
+          onClick={() => handleReply(currentVideo._id)}
+        >
+          <FaComment />
+          <span className="count">{currentVideo.replies?.length || 0}</span>
+        </button>
+      </div>
+
+      {/* Video Indicators */}
+      <div className="video-indicators">
+        {videos.map((_, index) => (
+          <div 
+            key={index}
+            className={`indicator ${index === activeVideoIndex ? 'active' : ''} ${index < activeVideoIndex ? 'passed' : ''}`}
+            onClick={() => {
+              setActiveVideoIndex(index);
+              setActiveReplyIndex(0);
+            }}
+          />
+        ))}
+      </div>
+    </div>
+
+    {/* Replies Section - 50% */}
+    <div className="replies-section">
+      {currentVideo?.replies?.length > 0 ? (
+        <div className="reply-video-container">
+          <div className="reply-video-wrapper" onClick={toggleReplyVideo}>
             <video
-              ref={mainVideoRef}
-              src={getAssetUrl(currentVideo.videoUrl)}
-              className="video-player"
+              ref={replyVideoRef}
+              key={currentVideo.replies[activeReplyIndex]._id}
+              src={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
+              className="reply-video"
               loop
               muted={isMuted}
               playsInline
-              autoPlay
             />
-            
-            {/* Play/Pause Overlay */}
-            {!isMainPlaying && (
+
+            {/* 🗑️ زر الحذف - يظهر لصاحب الرد أو صاحب الفيديو */}
+            {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
+              <button
+                className="delete-reply-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  confirmDeleteReply(
+                    currentVideo.replies[activeReplyIndex]._id,
+                    currentVideo._id
+                  );
+                }}
+                title="حذف الرد"
+              >
+                <FaTrash />
+              </button>
+            )}
+
+            {/* Play/Pause Overlay للرد */}
+            {!isReplyPlaying && (
               <div className="play-overlay">
                 <div className="play-button">
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -640,8 +744,8 @@ const HomePage = () => {
               </div>
             )}
 
-            {/* Pause Indicator */}
-            {isMainPlaying && showMainPauseIcon && (
+            {/* Pause Indicator للرد */}
+            {isReplyPlaying && showReplyPauseIcon && (
               <div className="pause-indicator">
                 <div className="pause-icon">
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -650,211 +754,104 @@ const HomePage = () => {
                 </div>
               </div>
             )}
-            
-            <div className="video-gradient"></div>
+
+            <div className="reply-gradient"></div>
           </div>
 
-          <div className="video-info">
-            <p className="video-description">{currentVideo.description}</p>
+          <div className="reply-info">
+            {/* ❌ تم إزالة عرض اسم المستخدم */}
+            <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="action-buttons">
+          {/* Reply Actions */}
+          <div className="reply-actions">
             <div 
-              className="action-btn-unified profile-btn"
-              onClick={() => navigateToProfile(currentVideo.user.username)}
+              className="action-btn-unified reply-profile-btn"
+              onClick={() => navigateToProfile(currentVideo.replies[activeReplyIndex].user.username)}
             >
               <img 
-                src={getAssetUrl(currentVideo.user.profileImage) || '/default-avatar.png'} 
-                alt={currentVideo.user.username}
+                src={getAssetUrl(currentVideo.replies[activeReplyIndex].user.profileImage) || '/default-avatar.png'} 
+                alt={currentVideo.replies[activeReplyIndex].user.username}
                 className="profile-image"
               />
             </div>
 
-            <button 
-              className={`action-btn-unified ${likedVideos.has(currentVideo._id) ? 'liked' : ''}`}
-              onClick={() => handleLikeMainVideo(currentVideo._id)}
+            <button
+              className={`action-btn-unified ${likedReplies.has(currentVideo.replies[activeReplyIndex]._id) ? 'liked' : ''}`}
+              onClick={() => handleLikeReply(currentVideo.replies[activeReplyIndex]._id, currentVideo._id)}
             >
               <FaHeart />
-              <span className="count">{currentVideo.likes?.length || 0}</span>
-            </button>
-
-            <button 
-              className="action-btn-unified"
-              onClick={() => handleReply(currentVideo._id)}
-            >
-              <FaComment />
-              <span className="count">{currentVideo.replies?.length || 0}</span>
+              <span className="count">{currentVideo.replies[activeReplyIndex].likes?.length || 0}</span>
             </button>
           </div>
 
-          {/* Video Indicators */}
-          <div className="video-indicators">
-            {videos.map((_, index) => (
-              <div 
-                key={index}
-                className={`indicator ${index === activeVideoIndex ? 'active' : ''} ${index < activeVideoIndex ? 'passed' : ''}`}
-                onClick={() => {
-                  setActiveVideoIndex(index);
-                  setActiveReplyIndex(0);
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Replies Section - 50% */}
-        <div className="replies-section">
-          {currentVideo?.replies?.length > 0 ? (
-            <div className="reply-video-container">
-              <div className="reply-video-wrapper" onClick={toggleReplyVideo}>
-                {/* ✅ إضافة autoPlay و muted */}
-                <video
-                  ref={replyVideoRef}
-                  key={currentVideo.replies[activeReplyIndex]._id}
-                  src={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
-                  className="reply-video"
-                  loop
-                  muted={isMuted}
-                  playsInline
-                  autoPlay
-                />
-
-                {/* 🗑️ زر الحذف */}
-                {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
-                  <button
-                    className="delete-reply-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      confirmDeleteReply(
-                        currentVideo.replies[activeReplyIndex]._id,
-                        currentVideo._id
-                      );
-                    }}
-                    title="حذف الرد"
-                  >
-                    <FaTrash />
-                  </button>
-                )}
-
-                {/* Play/Pause Overlay للرد */}
-                {!isReplyPlaying && (
-                  <div className="play-overlay">
-                    <div className="play-button">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
-                {/* Pause Indicator للرد */}
-                {isReplyPlaying && showReplyPauseIcon && (
-                  <div className="pause-indicator">
-                    <div className="pause-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
-                <div className="reply-gradient"></div>
-              </div>
-
-              <div className="reply-info">
-                <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
-              </div>
-
-              {/* Reply Actions */}
-              <div className="reply-actions">
-                <div 
-                  className="action-btn-unified reply-profile-btn"
-                  onClick={() => navigateToProfile(currentVideo.replies[activeReplyIndex].user.username)}
-                >
-                  <img 
-                    src={getAssetUrl(currentVideo.replies[activeReplyIndex].user.profileImage) || '/default-avatar.png'} 
-                    alt={currentVideo.replies[activeReplyIndex].user.username}
-                    className="profile-image"
-                  />
-                </div>
-
-                <button
-                  className={`action-btn-unified ${likedReplies.has(currentVideo.replies[activeReplyIndex]._id) ? 'liked' : ''}`}
-                  onClick={() => handleLikeReply(currentVideo.replies[activeReplyIndex]._id, currentVideo._id)}
-                >
-                  <FaHeart />
-                  <span className="count">{currentVideo.replies[activeReplyIndex].likes?.length || 0}</span>
-                </button>
-              </div>
-
-              {/* Navigation Arrows */}
-              {currentVideo.replies.length > 1 && (
-                <>
-                  <button 
-                    className={`reply-nav reply-nav-right ${activeReplyIndex === 0 ? 'disabled' : ''}`}
-                    onClick={goToPrevReply}
-                    disabled={activeReplyIndex === 0}
-                  >
-                    <FaChevronRight />
-                  </button>
-                  <button 
-                    className={`reply-nav reply-nav-left ${activeReplyIndex === currentVideo.replies.length - 1 ? 'disabled' : ''}`}
-                    onClick={goToNextReply}
-                    disabled={activeReplyIndex === currentVideo.replies.length - 1}
-                  >
-                    <FaChevronLeft />
-                  </button>
-                </>
-              )}
-
-              {/* Reply Counter */}
-              <div className="reply-counter">
-                {activeReplyIndex + 1} / {currentVideo.replies.length}
-              </div>
-            </div>
-          ) : (
-            <div className="no-replies">
-              <div className="no-replies-content">
-                <div className="no-replies-icon">
-                  <FaComment />
-                </div>
-                <h3>لا توجد ردود بعد</h3>
-                <p>كن أول من يشارك رأيه</p>
-                <button className="create-reply-btn" onClick={() => handleReply(currentVideo._id)}>
-                  إضافة رد
-                </button>
-              </div>
-            </div>
+          {/* Navigation Arrows */}
+          {currentVideo.replies.length > 1 && (
+            <>
+              <button 
+                className={`reply-nav reply-nav-right ${activeReplyIndex === 0 ? 'disabled' : ''}`}
+                onClick={goToPrevReply}
+                disabled={activeReplyIndex === 0}
+              >
+                <FaChevronRight />
+              </button>
+              <button 
+                className={`reply-nav reply-nav-left ${activeReplyIndex === currentVideo.replies.length - 1 ? 'disabled' : ''}`}
+                onClick={goToNextReply}
+                disabled={activeReplyIndex === currentVideo.replies.length - 1}
+              >
+                <FaChevronLeft />
+              </button>
+            </>
           )}
-        </div>
-      </div>
 
-      {/* 🗑️ Delete Reply Modal */}
-      {showDeleteReplyModal && (
-        <div className="modal-overlay" onClick={() => setShowDeleteReplyModal(false)}>
-          <div className="modal-content delete-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>تأكيد حذف الرد</h3>
+          {/* Reply Counter */}
+          <div className="reply-counter">
+            {activeReplyIndex + 1} / {currentVideo.replies.length}
+          </div>
+        </div>
+      ) : (
+        <div className="no-replies">
+          <div className="no-replies-content">
+            <div className="no-replies-icon">
+              <FaComment />
             </div>
-            <div className="modal-body">
-              <p>هل أنت متأكد من حذف هذا الرد؟ لا يمكن التراجع عن هذا الإجراء.</p>
-            </div>
-            <div className="modal-actions">
-              <button className="confirm-delete-btn" onClick={handleDeleteReply}>
-                <FaTrash /> حذف نهائياً
-              </button>
-              <button className="cancel-modal-btn" onClick={() => setShowDeleteReplyModal(false)}>
-                إلغاء
-              </button>
-            </div>
+            <h3>لا توجد ردود بعد</h3>
+            <p>كن أول من يشارك رأيه</p>
+            <button className="create-reply-btn" onClick={() => handleReply(currentVideo._id)}>
+              إضافة رد
+            </button>
           </div>
         </div>
       )}
-
-      <NavigationBar currentPage="home" />
     </div>
-  );
+  </div>
+
+  {/* 🗑️ Delete Reply Modal */}
+  {showDeleteReplyModal && (
+    <div className="modal-overlay" onClick={() => setShowDeleteReplyModal(false)}>
+      <div className="modal-content delete-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>تأكيد حذف الرد</h3>
+        </div>
+        <div className="modal-body">
+          <p>هل أنت متأكد من حذف هذا الرد؟ لا يمكن التراجع عن هذا الإجراء.</p>
+        </div>
+        <div className="modal-actions">
+          <button className="confirm-delete-btn" onClick={handleDeleteReply}>
+            <FaTrash /> حذف نهائياً
+          </button>
+          <button className="cancel-modal-btn" onClick={() => setShowDeleteReplyModal(false)}>
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <NavigationBar currentPage="home" />
+</div>
+);
 };
 
 export default HomePage;
