@@ -1,10 +1,12 @@
 {
   "name": "Otogram - شارك لحظاتك مع العالم",
   "short_name": "Otogram",
-  "description": "منصة مشاركة الفيديوهات القصيرة والردود التفاعلية",
-  "start_url": "/",
+  "description": "منصة عربية لمشاركة الفيديوهات القصيرة والردود التفاعلية - اكتشف، شارك، تفاعل",
+  "start_url": "/?source=pwa&theme=light",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
@@ -40,36 +42,157 @@
       "purpose": "any"
     }
   ],
-  "categories": ["social", "entertainment", "video"],
-  "lang": "ar",
-  "dir": "rtl",
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-home-light.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "الصفحة الرئيسية - عرض الفيديوهات (الوضع الفاتح)"
+    },
+    {
+      "src": "/screenshots/mobile-profile-light.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "الملف الشخصي (الوضع الفاتح)"
+    },
+    {
+      "src": "/screenshots/mobile-upload-light.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "رفع فيديو جديد (الوضع الفاتح)"
+    },
+    {
+      "src": "/screenshots/desktop-home-light.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "الصفحة الرئيسية - سطح المكتب (الوضع الفاتح)"
+    }
+  ],
   "shortcuts": [
     {
       "name": "الرئيسية",
       "short_name": "Home",
-      "description": "عرض الفيديوهات الرئيسية",
-      "url": "/",
+      "description": "تصفح أحدث الفيديوهات والمحتوى الرائج",
+      "url": "/?source=shortcut&theme=light",
       "icons": [
         {
           "src": "/favicon-96x96.png",
-          "sizes": "96x96"
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
     {
       "name": "رفع فيديو",
       "short_name": "Upload",
-      "description": "رفع فيديو جديد",
-      "url": "/upload",
+      "description": "شارك فيديو جديد مع المجتمع",
+      "url": "/upload?source=shortcut&theme=light",
       "icons": [
         {
           "src": "/favicon-96x96.png",
-          "sizes": "96x96"
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "الملف الشخصي",
+      "short_name": "Profile",
+      "description": "عرض وتعديل ملفك الشخصي",
+      "url": "/profile?source=shortcut&theme=light",
+      "icons": [
+        {
+          "src": "/favicon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "الإشعارات",
+      "short_name": "Notifications",
+      "description": "شاهد آخر التفاعلات والإشعارات",
+      "url": "/notifications?source=shortcut&theme=light",
+      "icons": [
+        {
+          "src": "/favicon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     }
   ],
+  "categories": [
+    "social",
+    "entertainment",
+    "video",
+    "photo",
+    "lifestyle",
+    "news"
+  ],
+  "lang": "ar",
+  "dir": "rtl",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "share_target": {
+    "action": "/upload/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "description",
+      "url": "url",
+      "files": [
+        {
+          "name": "video",
+          "accept": ["video/mp4", "video/webm", "video/ogg", "video/*"]
+        },
+        {
+          "name": "image",
+          "accept": ["image/jpeg", "image/png", "image/webp", "image/*"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+otogram",
+      "url": "/share?video=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/upload",
+      "accept": {
+        "video/mp4": [".mp4"],
+        "video/webm": [".webm"],
+        "video/ogg": [".ogv"],
+        "video/quicktime": [".mov"]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "permissions": [
+    "camera",
+    "microphone",
+    "storage"
+  ],
+  "features": [
+    "video-upload",
+    "video-playback",
+    "social-sharing",
+    "user-profiles",
+    "notifications",
+    "offline-mode"
+  ]
 }
