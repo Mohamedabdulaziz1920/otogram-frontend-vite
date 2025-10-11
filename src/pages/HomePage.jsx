@@ -18,7 +18,7 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   
   // 🎮 States للتحكم في التشغيل
   const [isMainPlaying, setIsMainPlaying] = useState(false);
@@ -61,7 +61,6 @@ const HomePage = () => {
       const response = await api.get('/api/videos');
 
       if (response.data && Array.isArray(response.data)) {
-        // 🎲 خلط الفيديوهات بشكل عشوائي
         const shuffledVideos = shuffleArray(response.data);
         setVideos(shuffledVideos);
 
@@ -118,17 +117,21 @@ const HomePage = () => {
   useEffect(() => {
     if (mainVideoRef.current) {
       mainVideoRef.current.currentTime = 0;
+      mainVideoRef.current.muted = isMuted;
       
-      // محاولة التشغيل التلقائي
-      mainVideoRef.current.play()
-        .then(() => {
-          setIsMainPlaying(true);
-          console.log('✅ Main video playing automatically');
-        })
-        .catch(err => {
-          console.log('⚠️ Autoplay prevented:', err);
-          setIsMainPlaying(false);
-        });
+      const playPromise = mainVideoRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsMainPlaying(true);
+            console.log('✅ Main video playing');
+          })
+          .catch(err => {
+            console.log('⚠️ Autoplay prevented:', err.message);
+            setIsMainPlaying(false);
+          });
+      }
     }
     
     // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
@@ -137,7 +140,7 @@ const HomePage = () => {
       replyVideoRef.current.currentTime = 0;
       setIsReplyPlaying(false);
     }
-  }, [activeVideoIndex]);
+  }, [activeVideoIndex, isMuted]);
 
   // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
   useEffect(() => {
@@ -168,7 +171,7 @@ const HomePage = () => {
     });
   }, []);
 
-  // 🎮 التحكم في تشغيل الفيديو الرئيسي (اختياري - للنقر)
+  // 🎮 التحكم في تشغيل الفيديو الرئيسي
   const toggleMainVideo = () => {
     if (mainVideoRef.current) {
       if (isMainPlaying) {
@@ -189,7 +192,7 @@ const HomePage = () => {
     }
   };
 
-  // 🎮 التحكم في تشغيل فيديو الرد (بالنقر فقط)
+  // 🎮 التحكم في تشغيل فيديو الرد
   const toggleReplyVideo = () => {
     if (replyVideoRef.current) {
       if (isReplyPlaying) {
@@ -202,7 +205,6 @@ const HomePage = () => {
         setShowReplyPauseIcon(true);
         setTimeout(() => setShowReplyPauseIcon(false), 1000);
         
-        // إيقاف الفيديو الرئيسي عند تشغيل الرد
         if (mainVideoRef.current && isMainPlaying) {
           mainVideoRef.current.pause();
           setIsMainPlaying(false);
@@ -211,7 +213,7 @@ const HomePage = () => {
     }
   };
 
-  // ✅ Touch events for mobile - محسّن للردود
+  // ✅ Touch events for mobile
   useEffect(() => {
     let touchStartY = 0;
     let touchStartX = 0;
@@ -373,9 +375,21 @@ const HomePage = () => {
   }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
 
   const toggleMute = () => {
-    setIsMuted(prev => !prev);
-    if (mainVideoRef.current) mainVideoRef.current.muted = !isMuted;
-    if (replyVideoRef.current) replyVideoRef.current.muted = !isMuted;
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    
+    if (mainVideoRef.current) {
+      mainVideoRef.current.muted = newMutedState;
+      if (!isMainPlaying) {
+        mainVideoRef.current.play()
+          .then(() => setIsMainPlaying(true))
+          .catch(err => console.log('Play error:', err));
+      }
+    }
+    
+    if (replyVideoRef.current) {
+      replyVideoRef.current.muted = newMutedState;
+    }
   };
 
   const handleLikeMainVideo = async (videoId) => {
@@ -475,7 +489,6 @@ const HomePage = () => {
     const replyOwnerId = reply.user._id || reply.user.id;
     const videoOwnerId = mainVideo.user._id || mainVideo.user.id;
     
-    // يمكن الحذف إذا كان صاحب الرد أو صاحب الفيديو الأصلي
     return userId === replyOwnerId || userId === videoOwnerId;
   };
 
@@ -492,7 +505,6 @@ const HomePage = () => {
     try {
       await api.delete(`/api/videos/${replyToDelete.replyId}`);
       
-      // تحديث الفيديوهات لإزالة الرد المحذوف
       setVideos(prevVideos => 
         prevVideos.map(video => {
           if (video._id === replyToDelete.videoId) {
@@ -505,7 +517,6 @@ const HomePage = () => {
         })
       );
       
-      // إعادة تعيين index الرد إذا كان آخر رد
       const currentVideoReplies = videos[activeVideoIndex].replies;
       if (currentVideoReplies.length > 1) {
         if (activeReplyIndex >= currentVideoReplies.length - 1 && activeReplyIndex > 0) {
@@ -527,40 +538,54 @@ const HomePage = () => {
 
   const currentVideo = videos[activeVideoIndex];
 
-  if (loading) return (
-    <div className="loading-container">
-      <div className="loading-wrapper">
-        <div className="loading-spinner"></div>
-        <p>جاري تحميل الفيديوهات...</p>
-      </div>
-    </div>
-  );
+  // ✅ تم إزالة شاشة التحميل المنفصلة - الاعتماد على index.html loader
   
-  if (error) return (
-    <div className="error-container">
-      <div className="error-wrapper">
-        <h2>خطأ في التحميل</h2>
-        <p>{error}</p>
-        <button onClick={fetchVideos} className="retry-btn">إعادة المحاولة</button>
+  // ❌ معالجة الأخطاء فقط
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-wrapper">
+          <h2>خطأ في التحميل</h2>
+          <p>{error}</p>
+          <button onClick={fetchVideos} className="retry-btn">إعادة المحاولة</button>
+        </div>
+        <NavigationBar currentPage="home" />
       </div>
-    </div>
-  );
+    );
+  }
   
-  if (!videos?.length) return (
-    <div className="empty-state-container">
-      <div className="empty-wrapper">
-        <h2>لا توجد فيديوهات</h2>
-        <p>كن أول من يشارك محتوى!</p>
+  // ❌ حالة عدم وجود فيديوهات
+  if (!loading && !videos?.length) {
+    return (
+      <div className="empty-state-container">
+        <div className="empty-wrapper">
+          <h2>لا توجد فيديوهات</h2>
+          <p>كن أول من يشارك محتوى!</p>
+        </div>
+        <NavigationBar currentPage="home" />
       </div>
-      <NavigationBar currentPage="home" />
-    </div>
-  );
+    );
+  }
+
+  // ✅ عرض محتوى فارغ أثناء التحميل - لا شاشة تحميل منفصلة
+  if (loading || !currentVideo) {
+    return null;
+  }
 
   return (
     <div className="home-page">
       {/* Theme Toggle */}
       <button className="theme-toggle" onClick={toggleTheme}>
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
+      </button>
+      
+      {/* Mute Toggle */}
+      <button 
+        className={`mute-toggle ${isMuted ? 'is-muted' : ''}`} 
+        onClick={toggleMute}
+        title={isMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
+      >
+        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
       </button>
       
       <div className="content-wrapper">
@@ -574,6 +599,7 @@ const HomePage = () => {
               loop
               muted={isMuted}
               playsInline
+              autoPlay
             />
             
             {/* Play/Pause Overlay */}
@@ -602,7 +628,6 @@ const HomePage = () => {
           </div>
 
           <div className="video-info">
-            {/* ❌ تم إزالة عرض اسم المستخدم */}
             <p className="video-description">{currentVideo.description}</p>
           </div>
 
@@ -664,9 +689,10 @@ const HomePage = () => {
                   loop
                   muted={isMuted}
                   playsInline
+                  autoPlay
                 />
 
-                {/* 🗑️ زر الحذف - يظهر لصاحب الرد أو صاحب الفيديو */}
+                {/* 🗑️ زر الحذف */}
                 {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
                   <button
                     className="delete-reply-btn"
@@ -709,7 +735,6 @@ const HomePage = () => {
               </div>
 
               <div className="reply-info">
-                {/* ❌ تم إزالة عرض اسم المستخدم */}
                 <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
               </div>
 
