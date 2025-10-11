@@ -59,7 +59,7 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -73,7 +73,7 @@ export default defineConfig({
               cacheName: 'gstatic-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -87,7 +87,7 @@ export default defineConfig({
               cacheName: 'images-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
           },
@@ -98,7 +98,7 @@ export default defineConfig({
               cacheName: 'videos-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+                maxAgeSeconds: 60 * 60 * 24 * 7
               },
               rangeRequests: true
             }
@@ -109,7 +109,7 @@ export default defineConfig({
         clientsClaim: true
       },
       devOptions: {
-        enabled: false, // ✅ تعطيل في التطوير
+        enabled: false,
         type: 'module'
       }
     })
@@ -123,33 +123,13 @@ export default defineConfig({
     open: false,
     cors: true,
     
-    // Proxy Configuration
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
-        ws: true,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.log('❌ Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('📤 Sending Request:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('📥 Received Response:', proxyRes.statusCode, req.url);
-          });
-        }
+        ws: true
       }
-    },
-    
-    // Headers for Security
-    headers: {
-      'X-Frame-Options': 'SAMEORIGIN',
-      'X-Content-Type-Options': 'nosniff',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin'
     }
   },
   
@@ -159,14 +139,7 @@ export default defineConfig({
     host: true,
     strictPort: false,
     open: false,
-    cors: true,
-    headers: {
-      'X-Frame-Options': 'SAMEORIGIN',
-      'X-Content-Type-Options': 'nosniff',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cache-Control': 'public, max-age=3600'
-    }
+    cors: true
   },
   
   // ✅ Build Configuration
@@ -181,7 +154,6 @@ export default defineConfig({
     reportCompressedSize: true,
     chunkSizeWarningLimit: 1000,
     
-    // Terser Options for Minification
     terserOptions: {
       compress: {
         drop_console: true,
@@ -193,44 +165,29 @@ export default defineConfig({
       }
     },
     
-    // Rollup Options
     rollupOptions: {
       output: {
-        // Manual Chunks for Code Splitting
         manualChunks(id) {
-          // Vendor Chunks
           if (id.includes('node_modules')) {
-            // React & React DOM
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
             }
-            
-            // React Router
             if (id.includes('react-router-dom') || id.includes('react-router')) {
               return 'router-vendor';
             }
-            
-            // Axios
             if (id.includes('axios')) {
               return 'axios-vendor';
             }
-            
-            // React Icons
             if (id.includes('react-icons')) {
               return 'icons-vendor';
             }
-            
-            // Swiper
             if (id.includes('swiper')) {
               return 'swiper-vendor';
             }
-            
-            // Other vendors
             return 'vendor';
           }
         },
         
-        // Asset File Names
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.');
           let extType = info[info.length - 1];
@@ -246,10 +203,7 @@ export default defineConfig({
           return `assets/${extType}/[name]-[hash][extname]`;
         },
         
-        // Chunk File Names
         chunkFileNames: 'assets/js/[name]-[hash].js',
-        
-        // Entry File Names
         entryFileNames: 'assets/js/[name]-[hash].js'
       }
     }
@@ -265,11 +219,7 @@ export default defineConfig({
       'react-icons',
       'react-icons/fa',
       'react-icons/bs',
-      'react-icons/ai',
-      'swiper',
-      'swiper/css',
-      'swiper/css/navigation',
-      'swiper/css/pagination'
+      'react-icons/ai'
     ],
     exclude: ['@vitejs/plugin-react']
   },
@@ -315,16 +265,9 @@ export default defineConfig({
     stringify: true
   },
   
-  // ✅ esbuild Configuration
-  esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' },
-    jsxInject: "import React from 'react'"
-  },
-  
   // ✅ Define Global Constants
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
   }
 })
