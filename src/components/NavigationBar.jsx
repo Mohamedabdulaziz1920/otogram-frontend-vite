@@ -142,7 +142,7 @@ const NavigationBar = ({ currentPage }) => {
                 ></span>
               )}
             </div>
-            <span className="nav-label upload-label">إنشاء</span>
+           
           </button>
 
           {/* Profile */}
