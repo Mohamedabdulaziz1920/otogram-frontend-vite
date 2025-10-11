@@ -283,32 +283,22 @@
   transform: scale(1.05);
 }
 
-/* ===== ✅ Upload Button Center - بدون تسمية ===== */
-.upload-button-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -65%);
-  background: none;
-  border: none;
-  cursor: pointer;
+/* ===== Upload Button - Enhanced ===== */
+.upload-button {
+  flex: 0 0 auto;
+  max-width: none;
   padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  z-index: 10;
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  margin: 0 8px;
+  transform: translateY(-10px);
 }
 
-.upload-button-center:hover {
-  transform: translate(-50%, -70%) scale(1.08);
-}
-
-.upload-button-center:active {
-  transform: translate(-50%, -65%) scale(0.95);
+.upload-button:hover {
+  transform: translateY(-15px) scale(1.05);
 }
 
 .upload-icon-wrapper {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -318,204 +308,167 @@
 /* Upload Glow Background */
 .upload-glow {
   position: absolute;
-  inset: -20px;
+  inset: -15px;
   background: radial-gradient(circle, 
     var(--upload-cyan) 0%, 
     var(--upload-pink) 50%, 
     transparent 70%
   );
   opacity: 0.3;
-  filter: blur(25px);
+  filter: blur(20px);
   animation: uploadGlow 3s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes uploadGlow {
-  0%, 100% { 
-    opacity: 0.2; 
-    transform: scale(1) rotate(0deg); 
-  }
-  50% { 
-    opacity: 0.5; 
-    transform: scale(1.3) rotate(180deg); 
-  }
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
 }
 
 .upload-icon-bg {
   display: flex;
   align-items: center;
-  height: 42px;
+  height: 36px;
   position: relative;
-  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.upload-button-center:hover .upload-icon-bg {
-  transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.5));
-}
-
-.upload-button-center:active .upload-icon-bg {
-  transform: scale(0.95);
+.upload-button:hover .upload-icon-bg {
+  transform: scale(1.1);
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
 }
 
 .upload-icon-part {
-  height: 42px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 /* Left Part - Cyan */
 .upload-left {
-  width: 14px;
+  width: 12px;
   background: linear-gradient(135deg, var(--upload-cyan), #00d4ff);
-  transform: translateX(6px);
+  transform: translateX(5px);
   z-index: 1;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.6);
-  animation: leftPulse 2s ease-in-out infinite;
-}
-
-@keyframes leftPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 255, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(0, 245, 255, 0.9); }
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.5);
 }
 
 /* Center Part - White/Black */
 .upload-center {
-  width: 44px;
+  width: 38px;
   background: linear-gradient(135deg, #ffffff, #f0f0f0);
-  border-radius: 12px;
+  border-radius: 10px;
   z-index: 3;
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.4),
-    0 0 0 3px rgba(255, 255, 255, 0.1) inset;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
 }
 
 [data-theme="light"] .upload-center {
   background: linear-gradient(135deg, #000000, #1a1a1a);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.3),
-    0 0 0 3px rgba(255, 255, 255, 0.2) inset;
 }
 
 .center-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
   opacity: 0;
-  border-radius: 12px;
   transition: opacity 0.3s ease;
 }
 
-.upload-button-center:hover .center-glow {
+.upload-button:hover .center-glow {
   opacity: 1;
-  animation: centerPulse 1.5s ease-in-out infinite;
+  animation: centerPulse 1s ease-in-out infinite;
 }
 
 @keyframes centerPulse {
-  0%, 100% { 
-    transform: scale(1); 
-    opacity: 0.3; 
-  }
-  50% { 
-    transform: scale(1.15); 
-    opacity: 0.7; 
-  }
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.6; }
 }
 
 /* Right Part - Pink */
 .upload-right {
-  width: 14px;
+  width: 12px;
   background: linear-gradient(135deg, var(--upload-pink), #ff1744);
-  transform: translateX(-6px);
+  transform: translateX(-5px);
   z-index: 2;
-  box-shadow: 0 0 20px rgba(254, 44, 85, 0.6);
-  animation: rightPulse 2s ease-in-out infinite;
-  animation-delay: 1s;
-}
-
-@keyframes rightPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(254, 44, 85, 0.6); }
-  50% { box-shadow: 0 0 30px rgba(254, 44, 85, 0.9); }
+  box-shadow: 0 0 15px rgba(254, 44, 85, 0.5);
 }
 
 /* Particles in Upload Parts */
 .upload-icon-part .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
-  animation: particleFloat 2.5s ease-in-out infinite;
+  animation: particleFloat 2s ease-in-out infinite;
 }
 
 .upload-left .particle {
-  top: 25%;
+  top: 30%;
   left: 50%;
   animation-delay: 0s;
 }
 
 .upload-right .particle {
-  bottom: 25%;
+  bottom: 30%;
   left: 50%;
-  animation-delay: 1.2s;
+  animation-delay: 1s;
 }
 
 @keyframes particleFloat {
-  0%, 100% { 
-    transform: translate(-50%, 0); 
-    opacity: 1; 
-  }
-  50% { 
-    transform: translate(-50%, -10px); 
-    opacity: 0.3; 
-  }
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-8px); opacity: 0.3; }
 }
 
 /* Upload Icon */
 .upload-icon {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--nav-bg);
   position: relative;
   z-index: 2;
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
 }
 
 [data-theme="light"] .upload-icon {
   color: #ffffff;
 }
 
-.upload-button-center:hover .upload-icon {
-  transform: rotate(90deg) scale(1.2);
+.upload-button:hover .upload-icon {
+  transform: rotate(90deg) scale(1.1);
 }
 
-.upload-button-center:active .upload-icon {
-  transform: rotate(180deg) scale(1.1);
+/* Upload Label */
+.upload-label {
+  margin-top: 2px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--upload-cyan), var(--upload-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 /* Ripple Effect */
 .upload-ripple {
   position: absolute;
-  width: 15px;
-  height: 15px;
-  background: radial-gradient(circle, var(--upload-pink), var(--upload-cyan));
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle, var(--upload-pink), transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
-  animation: rippleEffect 0.8s ease-out;
+  animation: rippleEffect 0.6s ease-out;
   pointer-events: none;
-  opacity: 0.8;
 }
 
 @keyframes rippleEffect {
   to {
-    transform: translate(-50%, -50%) scale(12);
+    transform: translate(-50%, -50%) scale(10);
     opacity: 0;
   }
 }
@@ -752,20 +705,20 @@
   }
 
   .upload-icon-wrapper {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 34px;
   }
 
   .upload-icon-bg {
-    height: 38px;
+    height: 34px;
   }
 
   .upload-center {
-    width: 40px;
+    width: 36px;
   }
 
   .upload-icon {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .nav-profile-img {
@@ -791,20 +744,10 @@
   .nav-item {
     max-width: 60px;
   }
-
-  .upload-icon-wrapper {
-    width: 52px;
-    height: 52px;
-  }
-
-  .upload-icon-bg {
-    height: 36px;
-  }
 }
 
 /* ===== Accessibility ===== */
-.nav-item:focus-visible,
-.upload-button-center:focus-visible {
+.nav-item:focus-visible {
   outline: 2px solid var(--nav-active);
   outline-offset: 3px;
   border-radius: 20px;
@@ -833,8 +776,7 @@
 /* ===== Performance Optimizations ===== */
 .nav-icon,
 .upload-icon-bg,
-.profile-avatar-nav,
-.upload-button-center {
+.profile-avatar-nav {
   will-change: transform;
 }
 
