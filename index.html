@@ -848,41 +848,154 @@
       })();
     </script>
     
-    <!-- Service Worker -->
+    <!-- ========================================
+         SERVICE WORKER REGISTRATION
+         ======================================== -->
     <script>
-      if ('serviceWorker' in navigator) {
+      (function() {
+        'use strict';
+        
+        if (!('serviceWorker' in navigator)) {
+          console.log('⚠️ Service Worker not supported');
+          return;
+        }
+        
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1';
+        
+        if (isDevelopment) {
+          console.log('🔧 Development mode - Service Worker disabled');
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (let registration of registrations) {
+              registration.unregister();
+              console.log('🗑️ Unregistered old Service Worker');
+            }
+          });
+          return;
+        }
+        
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
-              console.log('✅ SW registered:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('❌ SW registration failed:', error);
+          navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+            updateViaCache: 'none'
+          })
+          .then(function(registration) {
+            console.log('✅ Service Worker registered successfully');
+            console.log('📍 Scope:', registration.scope);
+            
+            setInterval(function() {
+              registration.update();
+            }, 1000 * 60 * 30);
+            
+            registration.addEventListener('updatefound', function() {
+              const newWorker = registration.installing;
+              
+              if (!newWorker) return;
+              
+              newWorker.addEventListener('statechange', function() {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('🔄 New Service Worker available');
+                  
+                  showUpdateNotification(newWorker);
+                }
+              });
             });
+          })
+          .catch(function(error) {
+            console.warn('⚠️ Service Worker registration failed:', error.message);
+          });
+          
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (refreshing) return;
+            refreshing = true;
+            console.log('🔄 Service Worker updated - Reloading...');
+            window.location.reload();
+          });
         });
-      }
+        
+        function showUpdateNotification(worker) {
+          const shouldUpdate = confirm(
+            'يوجد تحديث جديد لـ Otogram 🎉\n\n' +
+            'هل تريد إعادة التحميل للحصول على آخر التحديثات؟'
+          );
+          
+          if (shouldUpdate) {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        }
+        
+        navigator.serviceWorker.addEventListener('error', function(error) {
+          console.error('❌ Service Worker error:', error);
+        });
+        
+      })();
     </script>
     
-    <!-- No Script Fallback -->
+    <!-- ========================================
+         NOSCRIPT FALLBACK
+         ======================================== -->
     <noscript>
       <div style="
         position: fixed;
         inset: 0;
-        background: #000;
+        background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        gap: 20px;
+        gap: 30px;
         text-align: center;
-        padding: 20px;
-        font-family: Arial, sans-serif;
+        padding: 30px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       ">
-        <h1 style="font-size: 24px; color: #00f5ff;">⚠️ JavaScript مطلوب</h1>
-        <p style="font-size: 16px; max-width: 500px; color: #fe2c55;">
-          يجب تفعيل JavaScript في متصفحك لاستخدام Otogram
-        </p>
+        <div style="
+          font-size: 80px;
+          background: linear-gradient(135deg, #00f5ff, #fe2c55);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        ">
+          ⚠️
+        </div>
+        
+        <div>
+          <h1 style="
+            font-size: 28px; 
+            margin: 0 0 15px 0;
+            background: linear-gradient(135deg, #00f5ff, #fe2c55);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+          ">
+            JavaScript مطلوب
+          </h1>
+          
+          <p style="
+            font-size: 16px; 
+            max-width: 500px; 
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin: 0;
+          ">
+            يجب تفعيل JavaScript في متصفحك<br/>
+            لاستخدام Otogram بشكل صحيح
+          </p>
+        </div>
+        
+        <div style="
+          padding: 15px 30px;
+          background: rgba(0, 245, 255, 0.1);
+          border: 2px solid #00f5ff;
+          border-radius: 12px;
+          color: #00f5ff;
+          font-size: 14px;
+          font-weight: 600;
+        ">
+          📱 قم بتفعيل JavaScript من إعدادات المتصفح
+        </div>
       </div>
     </noscript>
   </body>
