@@ -115,11 +115,12 @@ const NavigationBar = ({ currentPage }) => {
             </span>
           </button>
 
-          {/* Upload Button - Center with Enhanced Design */}
+          {/* ✅ Upload Button - بدون تسمية */}
           <button 
-            className="nav-item upload-button"
+            className="upload-button-center"
             onClick={handleUploadClick}
             aria-label="رفع فيديو"
+            title="رفع فيديو جديد"
           >
             <div className="upload-icon-wrapper">
               <div className="upload-glow"></div>
@@ -142,7 +143,6 @@ const NavigationBar = ({ currentPage }) => {
                 ></span>
               )}
             </div>
-           
           </button>
 
           {/* Profile */}
