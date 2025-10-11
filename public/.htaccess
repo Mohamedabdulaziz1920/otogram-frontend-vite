@@ -1,0 +1,151 @@
+# ========================================
+# OTOGRAM - APACHE CONFIGURATION
+# ========================================
+
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Redirect HTTP to HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  
+  # SPA Routing - Redirect all to index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# ========================================
+# MIME TYPES
+# ========================================
+
+<IfModule mod_mime.c>
+  # Service Worker
+  AddType application/javascript .js
+  
+  # Web App Manifest
+  AddType application/manifest+json .webmanifest
+  
+  # Videos
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType video/ogg .ogv
+  
+  # Images
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  
+  # Fonts
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+</IfModule>
+
+# ========================================
+# CACHING
+# ========================================
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Service Worker - No Cache
+  <Files "sw.js">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </Files>
+  
+  # Manifest - No Cache
+  <FilesMatch "\.(webmanifest|json)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+    ExpiresDefault "access plus 0 seconds"
+  </FilesMatch>
+  
+  # HTML - No Cache
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+    ExpiresDefault "access plus 0 seconds"
+  </FilesMatch>
+  
+  # Images - 1 year
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+  
+  # CSS/JS - 1 year
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+  
+  # Fonts - 1 year
+  <FilesMatch "\.(woff|woff2|ttf|otf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+  
+  # Videos - 1 month
+  <FilesMatch "\.(mp4|webm|ogv)$">
+    Header set Cache-Control "public, max-age=2592000"
+    ExpiresDefault "access plus 1 month"
+  </FilesMatch>
+</IfModule>
+
+# ========================================
+# COMPRESSION
+# ========================================
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/manifest+json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ========================================
+# SECURITY HEADERS
+# ========================================
+
+<IfModule mod_headers.c>
+  # X-Frame-Options
+  Header always set X-Frame-Options "SAMEORIGIN"
+  
+  # X-Content-Type-Options
+  Header always set X-Content-Type-Options "nosniff"
+  
+  # X-XSS-Protection
+  Header always set X-XSS-Protection "1; mode=block"
+  
+  # Referrer-Policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Permissions-Policy
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  
+  # CORS for Service Worker
+  <Files "sw.js">
+    Header set Service-Worker-Allowed "/"
+    Header set Content-Type "application/javascript; charset=utf-8"
+  </Files>
+  
+  # CORS for Fonts
+  <FilesMatch "\.(woff|woff2|ttf|eot|svg)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
+
+# ========================================
+# DISABLE DIRECTORY LISTING
+# ========================================
+Options -Indexes
+
+# ========================================
+# ERROR PAGES
+# ========================================
+ErrorDocument 404 /index.html
+ErrorDocument 500 /index.html
