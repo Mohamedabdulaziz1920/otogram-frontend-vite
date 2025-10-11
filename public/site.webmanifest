@@ -42,36 +42,6 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/mobile-home-dark.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "الصفحة الرئيسية - عرض الفيديوهات"
-    },
-    {
-      "src": "/screenshots/mobile-profile-dark.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "الملف الشخصي"
-    },
-    {
-      "src": "/screenshots/mobile-upload-dark.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "رفع فيديو جديد"
-    },
-    {
-      "src": "/screenshots/desktop-home-dark.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "الصفحة الرئيسية - سطح المكتب"
-    }
-  ],
   "shortcuts": [
     {
       "name": "الرئيسية",
@@ -111,32 +81,15 @@
           "type": "image/png"
         }
       ]
-    },
-    {
-      "name": "الإشعارات",
-      "short_name": "Notifications",
-      "description": "شاهد آخر التفاعلات والإشعارات",
-      "url": "/notifications?source=shortcut",
-      "icons": [
-        {
-          "src": "/favicon-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
     }
   ],
   "categories": [
     "social",
     "entertainment",
-    "video",
-    "photo",
-    "lifestyle",
-    "news"
+    "video"
   ],
   "lang": "ar",
   "dir": "rtl",
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "share_target": {
     "action": "/upload/share",
     "method": "POST",
@@ -149,50 +102,10 @@
         {
           "name": "video",
           "accept": ["video/mp4", "video/webm", "video/ogg", "video/*"]
-        },
-        {
-          "name": "image",
-          "accept": ["image/jpeg", "image/png", "image/webp", "image/*"]
         }
       ]
     }
   },
-  "protocol_handlers": [
-    {
-      "protocol": "web+otogram",
-      "url": "/share?video=%s"
-    }
-  ],
-  "file_handlers": [
-    {
-      "action": "/upload",
-      "accept": {
-        "video/mp4": [".mp4"],
-        "video/webm": [".webm"],
-        "video/ogg": [".ogv"],
-        "video/quicktime": [".mov"]
-      }
-    }
-  ],
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
   "related_applications": [],
-  "prefer_related_applications": false,
-  "permissions": [
-    "camera",
-    "microphone",
-    "storage"
-  ],
-  "features": [
-    "video-upload",
-    "video-playback",
-    "social-sharing",
-    "user-profiles",
-    "notifications",
-    "offline-mode"
-  ]
+  "prefer_related_applications": false
 }
