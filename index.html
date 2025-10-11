@@ -135,7 +135,7 @@
     </script>
     
     <!-- ========================================
-         LOADING SCREEN STYLES - تصميم احترافي
+         LOADING SCREEN STYLES - TikTok Colors
          ======================================== -->
     <style>
       /* ===== Critical CSS - يُحمل فوراً ===== */
@@ -173,7 +173,7 @@
       }
       
       /* ========================================
-         🎨 LOADING SCREEN - PROFESSIONAL DESIGN
+         🎨 LOADING SCREEN - TIKTOK STYLE
          ======================================== */
       
       #otogram-loader {
@@ -181,7 +181,7 @@
         inset: 0;
         width: 100vw;
         height: 100vh;
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+        background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -194,7 +194,7 @@
       }
       
       [data-theme="light"] #otogram-loader {
-        background: linear-gradient(135deg, #ffffff 0%, #f0f0f5 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 50%, #ffffff 100%);
       }
       
       #otogram-loader.hide {
@@ -210,15 +210,15 @@
         inset: 0;
         overflow: hidden;
         z-index: 1;
-        opacity: 0.4;
+        opacity: 0.3;
       }
       
       .loader-grid {
         position: absolute;
         inset: 0;
         background-image: 
-          linear-gradient(rgba(200, 168, 130, 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(200, 168, 130, 0.05) 1px, transparent 1px);
+          linear-gradient(rgba(0, 245, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(254, 44, 85, 0.05) 1px, transparent 1px);
         background-size: 50px 50px;
         animation: gridMove 20s linear infinite;
       }
@@ -228,19 +228,19 @@
         100% { transform: translate(50px, 50px); }
       }
       
-      /* ===== Floating Orbs ===== */
+      /* ===== TikTok Style Floating Orbs ===== */
       .loader-orb {
         position: absolute;
         border-radius: 50%;
         filter: blur(100px);
-        opacity: 0.3;
+        opacity: 0.4;
         animation: floatOrb 10s infinite ease-in-out;
       }
       
       .orb-1 {
         width: 400px;
         height: 400px;
-        background: radial-gradient(circle, #C8A882 0%, transparent 70%);
+        background: radial-gradient(circle, #00f5ff 0%, transparent 70%);
         top: -200px;
         right: -200px;
         animation-delay: 0s;
@@ -249,7 +249,7 @@
       .orb-2 {
         width: 500px;
         height: 500px;
-        background: radial-gradient(circle, #A8845F 0%, transparent 70%);
+        background: radial-gradient(circle, #fe2c55 0%, transparent 70%);
         bottom: -250px;
         left: -250px;
         animation-delay: 3s;
@@ -258,7 +258,7 @@
       .orb-3 {
         width: 350px;
         height: 350px;
-        background: radial-gradient(circle, #E5D4B8 0%, transparent 70%);
+        background: radial-gradient(circle, #00f5ff 0%, #fe2c55 50%, transparent 70%);
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -267,9 +267,9 @@
       
       @keyframes floatOrb {
         0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-        25% { transform: translate(40px, -40px) scale(1.1); opacity: 0.4; }
-        50% { transform: translate(-30px, 30px) scale(0.9); opacity: 0.25; }
-        75% { transform: translate(30px, 40px) scale(1.05); opacity: 0.35; }
+        25% { transform: translate(40px, -40px) scale(1.1); opacity: 0.5; }
+        50% { transform: translate(-30px, 30px) scale(0.9); opacity: 0.3; }
+        75% { transform: translate(30px, 40px) scale(1.05); opacity: 0.4; }
       }
       
       /* ===== Main Content Container ===== */
@@ -301,7 +301,7 @@
         50% { transform: translateY(-20px); }
       }
       
-      /* ===== Background Glow ===== */
+      /* ===== TikTok Style Background Glow ===== */
       .loader-glow {
         position: absolute;
         top: 50%;
@@ -309,7 +309,11 @@
         transform: translate(-50%, -50%);
         width: 180px;
         height: 180px;
-        background: radial-gradient(circle, rgba(200, 168, 130, 0.4) 0%, transparent 70%);
+        background: radial-gradient(circle, 
+          rgba(0, 245, 255, 0.4) 0%, 
+          rgba(254, 44, 85, 0.4) 50%, 
+          transparent 70%
+        );
         border-radius: 50%;
         animation: glowPulse 2.5s ease-in-out infinite;
         z-index: 1;
@@ -317,16 +321,16 @@
       
       @keyframes glowPulse {
         0%, 100% { 
-          transform: translate(-50%, -50%) scale(1);
+          transform: translate(-50%, -50%) scale(1) rotate(0deg);
           opacity: 0.4;
         }
         50% { 
-          transform: translate(-50%, -50%) scale(1.4);
+          transform: translate(-50%, -50%) scale(1.4) rotate(180deg);
           opacity: 0.7;
         }
       }
       
-      /* ===== Rotating Rings ===== */
+      /* ===== TikTok Style Rotating Rings ===== */
       .loader-ring {
         position: absolute;
         top: 50%;
@@ -340,25 +344,28 @@
       .ring-1 {
         width: 160px;
         height: 160px;
-        border-top-color: #C8A882;
-        border-right-color: #C8A882;
+        border-top-color: #00f5ff;
+        border-right-color: #00f5ff;
+        box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
         animation: spinRing 2s linear infinite;
       }
       
       .ring-2 {
         width: 190px;
         height: 190px;
-        border-bottom-color: #A8845F;
-        border-left-color: #A8845F;
+        border-bottom-color: #fe2c55;
+        border-left-color: #fe2c55;
+        box-shadow: 0 0 20px rgba(254, 44, 85, 0.5);
         animation: spinRing 3s linear infinite reverse;
       }
       
       .ring-3 {
         width: 220px;
         height: 220px;
-        border-top-color: #E5D4B8;
-        border-bottom-color: #E5D4B8;
-        opacity: 0.5;
+        border-top-color: #00f5ff;
+        border-bottom-color: #fe2c55;
+        opacity: 0.4;
+        box-shadow: 0 0 30px rgba(0, 245, 255, 0.3), 0 0 30px rgba(254, 44, 85, 0.3);
         animation: spinRing 4s linear infinite;
       }
       
@@ -373,22 +380,25 @@
         height: 100%;
         object-fit: contain;
         z-index: 5;
-        filter: drop-shadow(0 0 30px rgba(200, 168, 130, 0.8));
+        filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.6))
+                drop-shadow(0 0 30px rgba(254, 44, 85, 0.6));
         animation: iconPulse 2.5s ease-in-out infinite;
       }
       
       @keyframes iconPulse {
         0%, 100% { 
           transform: scale(1);
-          filter: drop-shadow(0 0 30px rgba(200, 168, 130, 0.8));
+          filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.6))
+                  drop-shadow(0 0 30px rgba(254, 44, 85, 0.6));
         }
         50% { 
           transform: scale(1.08);
-          filter: drop-shadow(0 0 50px rgba(200, 168, 130, 1));
+          filter: drop-shadow(0 0 40px rgba(0, 245, 255, 1))
+                  drop-shadow(0 0 50px rgba(254, 44, 85, 1));
         }
       }
       
-      /* ===== Particles Around Icon ===== */
+      /* ===== TikTok Style Particles ===== */
       .loader-particles {
         position: absolute;
         inset: -30px;
@@ -400,10 +410,27 @@
         position: absolute;
         width: 6px;
         height: 6px;
-        background: radial-gradient(circle, #C8A882, transparent);
         border-radius: 50%;
-        opacity: 0.7;
+        opacity: 0.8;
         animation: particleFloat 3s ease-in-out infinite;
+      }
+      
+      /* Cyan particles */
+      .particle:nth-child(1), 
+      .particle:nth-child(3), 
+      .particle:nth-child(5),
+      .particle:nth-child(7) {
+        background: radial-gradient(circle, #00f5ff, transparent);
+        box-shadow: 0 0 10px #00f5ff;
+      }
+      
+      /* Pink particles */
+      .particle:nth-child(2), 
+      .particle:nth-child(4), 
+      .particle:nth-child(6),
+      .particle:nth-child(8) {
+        background: radial-gradient(circle, #fe2c55, transparent);
+        box-shadow: 0 0 10px #fe2c55;
       }
       
       .particle:nth-child(1) { top: 0%; left: 50%; animation-delay: 0s; }
@@ -418,11 +445,11 @@
       @keyframes particleFloat {
         0%, 100% { 
           transform: translate(0, 0) scale(1);
-          opacity: 0.4;
+          opacity: 0.5;
         }
         50% { 
-          transform: translate(var(--tx, 10px), var(--ty, -10px)) scale(1.3);
-          opacity: 0.9;
+          transform: translate(var(--tx, 10px), var(--ty, -10px)) scale(1.5);
+          opacity: 1;
         }
       }
       
@@ -435,7 +462,7 @@
       .particle:nth-child(7) { --tx: -15px; --ty: 0; }
       .particle:nth-child(8) { --tx: -10px; --ty: -15px; }
       
-      /* ===== Text & Branding ===== */
+      /* ===== TikTok Style Text & Branding ===== */
       .loader-text-wrapper {
         display: flex;
         flex-direction: column;
@@ -446,24 +473,23 @@
       .loader-text {
         font-size: 36px;
         font-weight: 900;
-        background: linear-gradient(135deg, #E5D4B8 0%, #C8A882 50%, #A8845F 100%);
+        background: linear-gradient(135deg, #00f5ff 0%, #fe2c55 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        animation: textShine 3s ease-in-out infinite;
+        background-size: 200% 200%;
+        animation: textGradient 3s ease-in-out infinite;
         letter-spacing: 2px;
-        text-shadow: 0 0 30px rgba(200, 168, 130, 0.3);
+        text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
         position: relative;
       }
       
-      @keyframes textShine {
+      @keyframes textGradient {
         0%, 100% { 
           background-position: 0% 50%;
-          opacity: 1;
         }
         50% { 
           background-position: 100% 50%;
-          opacity: 0.85;
         }
       }
       
@@ -474,7 +500,11 @@
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        background: linear-gradient(90deg, 
+          transparent, 
+          rgba(255, 255, 255, 0.4), 
+          transparent
+        );
         animation: shimmer 2s infinite;
       }
       
@@ -484,18 +514,22 @@
       
       .loader-subtext {
         font-size: 14px;
-        color: rgba(200, 168, 130, 0.8);
-        font-weight: 500;
+        background: linear-gradient(90deg, #00f5ff, #fe2c55, #00f5ff);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
         letter-spacing: 1px;
-        animation: subtextFade 2s ease-in-out infinite;
+        animation: subtextFlow 3s ease-in-out infinite;
       }
       
-      @keyframes subtextFade {
-        0%, 100% { opacity: 0.6; }
-        50% { opacity: 1; }
+      @keyframes subtextFlow {
+        0%, 100% { background-position: 0% 50%; opacity: 0.7; }
+        50% { background-position: 100% 50%; opacity: 1; }
       }
       
-      /* ===== Loading Dots ===== */
+      /* ===== TikTok Style Loading Dots ===== */
       .loader-dots {
         display: flex;
         gap: 10px;
@@ -505,30 +539,40 @@
       .dot {
         width: 12px;
         height: 12px;
-        background: linear-gradient(135deg, #C8A882, #A8845F);
         border-radius: 50%;
-        box-shadow: 0 0 15px rgba(200, 168, 130, 0.5);
         animation: dotBounce 1.4s ease-in-out infinite;
       }
       
-      .dot:nth-child(1) { animation-delay: 0s; }
-      .dot:nth-child(2) { animation-delay: 0.2s; }
-      .dot:nth-child(3) { animation-delay: 0.4s; }
+      .dot:nth-child(1) { 
+        background: linear-gradient(135deg, #00f5ff, #00d4ff);
+        box-shadow: 0 0 15px rgba(0, 245, 255, 0.7);
+        animation-delay: 0s; 
+      }
+      
+      .dot:nth-child(2) { 
+        background: linear-gradient(135deg, #ff69b4, #fe2c55);
+        box-shadow: 0 0 15px rgba(254, 44, 85, 0.7);
+        animation-delay: 0.2s; 
+      }
+      
+      .dot:nth-child(3) { 
+        background: linear-gradient(135deg, #00f5ff, #fe2c55);
+        box-shadow: 0 0 15px rgba(0, 245, 255, 0.5), 0 0 15px rgba(254, 44, 85, 0.5);
+        animation-delay: 0.4s; 
+      }
       
       @keyframes dotBounce {
         0%, 80%, 100% { 
           transform: scale(0.7) translateY(0);
           opacity: 0.5;
-          box-shadow: 0 0 10px rgba(200, 168, 130, 0.3);
         }
         40% { 
           transform: scale(1.3) translateY(-15px);
           opacity: 1;
-          box-shadow: 0 0 25px rgba(200, 168, 130, 0.8);
         }
       }
       
-      /* ===== Progress Bar ===== */
+      /* ===== TikTok Style Progress Bar ===== */
       .loader-progress {
         position: absolute;
         bottom: 30px;
@@ -537,19 +581,23 @@
         width: 80%;
         max-width: 400px;
         height: 4px;
-        background: rgba(200, 168, 130, 0.2);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         overflow: hidden;
         z-index: 10;
       }
       
+      [data-theme="light"] .loader-progress {
+        background: rgba(0, 0, 0, 0.1);
+      }
+      
       .progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #C8A882, #E5D4B8, #C8A882);
+        background: linear-gradient(90deg, #00f5ff, #fe2c55, #00f5ff);
         background-size: 200% 100%;
         border-radius: 10px;
         animation: progressFill 2s ease-in-out infinite;
-        box-shadow: 0 0 20px rgba(200, 168, 130, 0.6);
+        box-shadow: 0 0 20px rgba(0, 245, 255, 0.6), 0 0 20px rgba(254, 44, 85, 0.6);
       }
       
       @keyframes progressFill {
@@ -639,7 +687,7 @@
   
   <body>
     <!-- ========================================
-         🎨 LOADING SCREEN
+         🎨 LOADING SCREEN - TIKTOK STYLE
          ======================================== -->
     <div id="otogram-loader" role="status" aria-live="polite" aria-label="جاري التحميل">
       <!-- Background Effects -->
@@ -717,17 +765,17 @@
     <script type="module" src="/src/main.jsx"></script>
     
     <!-- ========================================
-         LOADER HIDE LOGIC - محسّن
+         LOADER HIDE LOGIC
          ======================================== -->
     <script>
       (function() {
         'use strict';
         
         const CONFIG = {
-          minDisplayTime: 2000,      // الحد الأدنى لعرض الشاشة (2 ثانية)
-          maxDisplayTime: 8000,      // الحد الأقصى (8 ثواني)
-          checkInterval: 50,         // فحص كل 50ms
-          fadeOutDuration: 800       // مدة الاختفاء
+          minDisplayTime: 2000,
+          maxDisplayTime: 8000,
+          checkInterval: 50,
+          fadeOutDuration: 800
         };
         
         const loader = document.getElementById('otogram-loader');
@@ -738,7 +786,6 @@
         let timeElapsed = false;
         let hidden = false;
         
-        // فحص جاهزية React
         const checkRoot = setInterval(function() {
           const root = document.getElementById('root');
           
@@ -749,13 +796,11 @@
           }
         }, CONFIG.checkInterval);
         
-        // الحد الأدنى للوقت
         setTimeout(function() {
           timeElapsed = true;
           tryHideLoader();
         }, CONFIG.minDisplayTime);
         
-        // محاولة إخفاء الشاشة
         function tryHideLoader() {
           if (hidden) return;
           
@@ -764,17 +809,14 @@
           }
         }
         
-        // إخفاء الشاشة
         function hideLoader() {
           if (hidden || !loader) return;
           hidden = true;
           
           console.log('✅ Loading complete in', Date.now() - startTime, 'ms');
           
-          // إضافة class للاختفاء
           loader.classList.add('hide');
           
-          // إزالة العنصر بعد انتهاء الانيميشن
           setTimeout(function() {
             if (loader && loader.parentNode) {
               loader.parentNode.removeChild(loader);
@@ -785,7 +827,6 @@
           clearInterval(checkRoot);
         }
         
-        // الحد الأقصى للوقت (فشل الأمان)
         setTimeout(function() {
           if (!hidden) {
             console.warn('⚠️ Force hiding loader after max time');
@@ -793,12 +834,10 @@
           }
         }, CONFIG.maxDisplayTime);
         
-        // معالج الأخطاء
         window.addEventListener('error', function(e) {
           console.error('❌ Global error:', e.message);
         });
         
-        // إخفاء عند اكتمال التحميل الكامل
         window.addEventListener('load', function() {
           setTimeout(function() {
             timeElapsed = true;
@@ -809,22 +848,7 @@
       })();
     </script>
     
-    <!-- ========================================
-         GOOGLE ANALYTICS (اختياري)
-         ======================================== -->
-    <!-- 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID');
-    </script>
-    -->
-    
-    <!-- ========================================
-         SERVICE WORKER REGISTRATION (اختياري)
-         ======================================== -->
+    <!-- Service Worker -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
@@ -855,8 +879,8 @@
         padding: 20px;
         font-family: Arial, sans-serif;
       ">
-        <h1 style="font-size: 24px; color: #C8A882;">⚠️ JavaScript مطلوب</h1>
-        <p style="font-size: 16px; max-width: 500px;">
+        <h1 style="font-size: 24px; color: #00f5ff;">⚠️ JavaScript مطلوب</h1>
+        <p style="font-size: 16px; max-width: 500px; color: #fe2c55;">
           يجب تفعيل JavaScript في متصفحك لاستخدام Otogram
         </p>
       </div>
