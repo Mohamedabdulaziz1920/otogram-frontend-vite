@@ -16,7 +16,8 @@ export default defineConfig({
         'favicon-96x96.png',
         'apple-touch-icon.png',
         'web-app-manifest-192x192.png',
-        'web-app-manifest-512x512.png'
+        'web-app-manifest-512x512.png',
+        '.well-known/assetlinks.json' // ✅ أضف هذا
       ],
       manifest: {
         name: 'Otogram - شارك لحظاتك مع العالم',
@@ -47,10 +48,29 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ]
+        ],
+        // ✅ إضافة Share Target للـ TWA
+        share_target: {
+          action: '/upload/share',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            title: 'title',
+            text: 'description',
+            url: 'url',
+            files: [
+              {
+                name: 'video',
+                accept: ['video/mp4', 'video/webm', 'video/ogg', 'video/*']
+              }
+            ]
+          }
+        }
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}'],
+        // ✅ استثناء assetlinks.json من الـ caching
+        navigateFallbackDenylist: [/^\/.well-known\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -123,6 +143,13 @@ export default defineConfig({
     open: false,
     cors: true,
     
+    // ✅ إضافة Headers للـ assetlinks.json في Development
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    },
+    
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:5000',
@@ -139,7 +166,13 @@ export default defineConfig({
     host: true,
     strictPort: false,
     open: false,
-    cors: true
+    cors: true,
+    
+    // ✅ Headers للـ Preview
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=3600'
+    }
   },
   
   // ✅ Build Configuration
