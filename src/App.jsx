@@ -7,10 +7,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import UploadPage from './pages/UploadPage';
+import Download from './pages/Download';
 import PrivateRoute from './components/PrivateRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
-import Download from './pages/Download';
 import './App.css';
 
 function App() {
@@ -31,12 +31,16 @@ function App() {
                   <UploadPage />
                 </PrivateRoute>
               } />
+              
               {/* مسارات الأدمن المحمية */}
               <Route element={<AdminRoute />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 {/* يمكنك إضافة مسارات أخرى محمية للأدمن هنا في المستقبل */}
                 {/* <Route path="/admin/settings" element={<AdminSettingsPage />} /> */}
               </Route>
+
+              {/* صفحة 404 - اختياري */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Router>
