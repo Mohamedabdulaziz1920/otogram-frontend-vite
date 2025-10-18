@@ -18,7 +18,8 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(false); // ✅ تغيير: الصوت مفعّل افتراضياً
+  const [isMuted, setIsMuted] = useState(false); // ✅ الصوت مفعّل افتراضياً
+  const [userInteracted, setUserInteracted] = useState(false); // ✅ تتبع أول تفاعل
   
   // 🎮 States للتحكم في التشغيل
   const [isMainPlaying, setIsMainPlaying] = useState(false);
@@ -96,25 +97,40 @@ const HomePage = () => {
     fetchVideos();
   }, [fetchVideos]);
 
-  // ✅ تفعيل الصوت بعد أول تفاعل من المستخدم (لتجاوز قيود المتصفح)
+  // ✅ تفعيل الصوت تلقائياً بعد أول تفاعل
   useEffect(() => {
-    const enableAudioOnFirstInteraction = () => {
-      if (mainVideoRef.current) {
-        mainVideoRef.current.muted = false;
-        setIsMuted(false);
-        console.log('🔊 Audio enabled after user interaction');
+    const handleFirstInteraction = async () => {
+      if (!userInteracted) {
+        setUserInteracted(true);
+        
+        // تشغيل الفيديو مع الصوت
+        if (mainVideoRef.current && !isMainPlaying) {
+          mainVideoRef.current.muted = false;
+          setIsMuted(false);
+          
+          try {
+            await mainVideoRef.current.play();
+            setIsMainPlaying(true);
+            console.log('🔊 Video playing with sound after first interaction');
+          } catch (err) {
+            console.log('❌ Play failed:', err);
+          }
+        }
       }
     };
 
-    // الاستماع لأول تفاعل (نقر أو لمس)
-    document.addEventListener('click', enableAudioOnFirstInteraction, { once: true });
-    document.addEventListener('touchstart', enableAudioOnFirstInteraction, { once: true });
+    // الاستماع لأي تفاعل
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, handleFirstInteraction, { once: true, passive: true });
+    });
 
     return () => {
-      document.removeEventListener('click', enableAudioOnFirstInteraction);
-      document.removeEventListener('touchstart', enableAudioOnFirstInteraction);
+      events.forEach(event => {
+        document.removeEventListener(event, handleFirstInteraction);
+      });
     };
-  }, []);
+  }, [userInteracted, isMainPlaying]);
 
   // 2️⃣ التوجيه التلقائي للفيديو
   useEffect(() => {
@@ -133,40 +149,24 @@ const HomePage = () => {
     }
   }, [location.state, videos]);
 
-  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو (محسّن)
+  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
   useEffect(() => {
     if (mainVideoRef.current) {
       mainVideoRef.current.currentTime = 0;
       mainVideoRef.current.muted = isMuted;
       
-      const playPromise = mainVideoRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsMainPlaying(true);
-            console.log('✅ Main video playing with sound:', !isMuted);
-          })
-          .catch(async (err) => {
-            console.log('⚠️ Autoplay with sound prevented:', err.message);
-            
-            // إذا فشل التشغيل مع الصوت، جرب مكتوماً
-            if (!isMuted) {
-              try {
-                mainVideoRef.current.muted = true;
-                await mainVideoRef.current.play();
-                setIsMainPlaying(true);
-                setIsMuted(true); // حدّث الحالة
-                console.log('✅ Playing muted instead (browser policy)');
-              } catch (mutedErr) {
-                console.log('❌ Even muted playback failed:', mutedErr.message);
-                setIsMainPlaying(false);
-              }
-            } else {
-              setIsMainPlaying(false);
-            }
-          });
-      }
+      const playVideo = async () => {
+        try {
+          await mainVideoRef.current.play();
+          setIsMainPlaying(true);
+          console.log('✅ Main video playing, muted:', isMuted);
+        } catch (err) {
+          console.log('⚠️ Autoplay prevented (waiting for user interaction)');
+          setIsMainPlaying(false);
+        }
+      };
+
+      playVideo();
     }
     
     // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
@@ -409,7 +409,7 @@ const HomePage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
 
-  // 🔊 التحكم في كتم/تفعيل الصوت (محسّن)
+  // 🔊 التحكم في كتم/تفعيل الصوت
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
@@ -417,7 +417,6 @@ const HomePage = () => {
     if (mainVideoRef.current) {
       mainVideoRef.current.muted = newMutedState;
       
-      // إذا كان الفيديو متوقف وتم إلغاء الكتم، شغّله
       if (!isMainPlaying && !newMutedState) {
         mainVideoRef.current.play()
           .then(() => {
