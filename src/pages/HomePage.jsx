@@ -18,7 +18,7 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // ✅ تغيير: الصوت مفعّل افتراضياً
   
   // 🎮 States للتحكم في التشغيل
   const [isMainPlaying, setIsMainPlaying] = useState(false);
@@ -96,6 +96,26 @@ const HomePage = () => {
     fetchVideos();
   }, [fetchVideos]);
 
+  // ✅ تفعيل الصوت بعد أول تفاعل من المستخدم (لتجاوز قيود المتصفح)
+  useEffect(() => {
+    const enableAudioOnFirstInteraction = () => {
+      if (mainVideoRef.current) {
+        mainVideoRef.current.muted = false;
+        setIsMuted(false);
+        console.log('🔊 Audio enabled after user interaction');
+      }
+    };
+
+    // الاستماع لأول تفاعل (نقر أو لمس)
+    document.addEventListener('click', enableAudioOnFirstInteraction, { once: true });
+    document.addEventListener('touchstart', enableAudioOnFirstInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('click', enableAudioOnFirstInteraction);
+      document.removeEventListener('touchstart', enableAudioOnFirstInteraction);
+    };
+  }, []);
+
   // 2️⃣ التوجيه التلقائي للفيديو
   useEffect(() => {
     if (location.state?.scrollToVideoId && videos.length > 0) {
@@ -113,7 +133,7 @@ const HomePage = () => {
     }
   }, [location.state, videos]);
 
-  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
+  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو (محسّن)
   useEffect(() => {
     if (mainVideoRef.current) {
       mainVideoRef.current.currentTime = 0;
@@ -125,11 +145,26 @@ const HomePage = () => {
         playPromise
           .then(() => {
             setIsMainPlaying(true);
-            console.log('✅ Main video playing');
+            console.log('✅ Main video playing with sound:', !isMuted);
           })
-          .catch(err => {
-            console.log('⚠️ Autoplay prevented:', err.message);
-            setIsMainPlaying(false);
+          .catch(async (err) => {
+            console.log('⚠️ Autoplay with sound prevented:', err.message);
+            
+            // إذا فشل التشغيل مع الصوت، جرب مكتوماً
+            if (!isMuted) {
+              try {
+                mainVideoRef.current.muted = true;
+                await mainVideoRef.current.play();
+                setIsMainPlaying(true);
+                setIsMuted(true); // حدّث الحالة
+                console.log('✅ Playing muted instead (browser policy)');
+              } catch (mutedErr) {
+                console.log('❌ Even muted playback failed:', mutedErr.message);
+                setIsMainPlaying(false);
+              }
+            } else {
+              setIsMainPlaying(false);
+            }
           });
       }
     }
@@ -374,16 +409,24 @@ const HomePage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
 
+  // 🔊 التحكم في كتم/تفعيل الصوت (محسّن)
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
     
     if (mainVideoRef.current) {
       mainVideoRef.current.muted = newMutedState;
-      if (!isMainPlaying) {
+      
+      // إذا كان الفيديو متوقف وتم إلغاء الكتم، شغّله
+      if (!isMainPlaying && !newMutedState) {
         mainVideoRef.current.play()
-          .then(() => setIsMainPlaying(true))
-          .catch(err => console.log('Play error:', err));
+          .then(() => {
+            setIsMainPlaying(true);
+            console.log('✅ Video playing after unmute');
+          })
+          .catch(err => {
+            console.log('❌ Play error after unmute:', err);
+          });
       }
     }
     
@@ -538,8 +581,6 @@ const HomePage = () => {
 
   const currentVideo = videos[activeVideoIndex];
 
-  // ✅ تم إزالة شاشة التحميل المنفصلة - الاعتماد على index.html loader
-  
   // ❌ معالجة الأخطاء فقط
   if (error) {
     return (
@@ -579,7 +620,7 @@ const HomePage = () => {
         {theme === 'dark' ? <FaSun /> : <FaMoon />}
       </button>
 
-           {/* Mute Toggle */}
+      {/* Mute Toggle */}
       <button 
         className={`mute-toggle ${isMuted ? 'is-muted' : ''}`} 
         onClick={toggleMute}
