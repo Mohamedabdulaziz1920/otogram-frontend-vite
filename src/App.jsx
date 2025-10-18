@@ -10,6 +10,7 @@ import UploadPage from './pages/UploadPage';
 import PrivateRoute from './components/PrivateRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
+import Download from './pages/Download';
 import './App.css';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/download" element={<Download />} />
             
               <Route path="/upload" element={
                 <PrivateRoute>
