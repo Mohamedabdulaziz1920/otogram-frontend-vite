@@ -172,6 +172,20 @@ export default function Download() {
             <a href="/support" className="footer-link">الدعم الفني</a>
           </div>
           <p className="copyright">© 2025 Otogram. جميع الحقوق محفوظة.</p>
+          
+          {/* ===== الكود المضاف ===== */}
+          <p className="copyright">
+            تصميم وبرمجة : <a 
+              href="https://mohammed-almalgami.com/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="footer-link"
+            >
+              محمد الملجمي
+            </a>
+          </p>
+          {/* ===== نهاية الكود المضاف ===== */}
+
         </div>
 
       </div>
