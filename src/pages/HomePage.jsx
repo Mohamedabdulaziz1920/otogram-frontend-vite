@@ -6,9 +6,8 @@ import {
 import NavigationBar from '../components/NavigationBar';
 import { useNavigate, useLocation } from 'react-router-dom'; // ✅ نحتاج useLocation
 import { useAuth, api } from '../context/AuthContext';
-import Toast from '../components/Toast';
 
-import AdvancedVideoPlayer from '../components/AdvancedVideoPlayer';
+import UCStyleVideoPlayer from '../components/UCStyleVideoPlayer';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -20,15 +19,8 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
-    // ✅ إضافة state للـ Toast
-  const [toast, setToast] = useState(null);
-  // ✅ دالة لإظهار Toast
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000); // يختفي بعد 3 ثواني
-  };
+  
   const [isMainPlayerActive, setIsMainPlayerActive] = useState(false);
   const [isReplyPlayerActive, setIsReplyPlayerActive] = useState(false);
 
@@ -165,19 +157,11 @@ const HomePage = () => {
     setIsReplyPlayerActive(false);
   }, [activeReplyIndex]);
 
-// ✅ تحديث دالة التحميل
   const downloadVideo = async (videoUrl, videoId, fileName) => {
     try {
-      console.log('📥 Starting download for video:', videoId);
-      
       setDownloadProgress(prev => ({ ...prev, [videoId]: 0 }));
 
       const response = await fetch(getAssetUrl(videoUrl));
-
-      if (!response.ok) {
-        throw new Error('فشل تنزيل الفيديو');
-      }
-
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
       let loaded = 0;
@@ -192,10 +176,8 @@ const HomePage = () => {
         chunks.push(value);
         loaded += value.length;
 
-        if (total) {
-          const progress = Math.round((loaded / total) * 100);
-          setDownloadProgress(prev => ({ ...prev, [videoId]: progress }));
-        }
+        const progress = Math.round((loaded / total) * 100);
+        setDownloadProgress(prev => ({ ...prev, [videoId]: progress }));
       }
 
       const blob = new Blob(chunks, { type: 'video/mp4' });
@@ -205,7 +187,7 @@ const HomePage = () => {
 
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName || `otogram_${videoId}.mp4`;
+      link.download = fileName || `video_${videoId}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -222,15 +204,10 @@ const HomePage = () => {
         return newProgress;
       });
 
-      // ✅ استبدال alert بـ Toast
-      showToast('تم تنزيل الفيديو بنجاح !', 'success');
-
+      alert('✅ تم تنزيل الفيديو بنجاح!');
     } catch (error) {
-      console.error('❌ Download error:', error);
-      
-      // ✅ استبدال alert بـ Toast
-      showToast('فشل تنزيل الفيديو', 'error');
-      
+      console.error('Download error:', error);
+      alert('❌ فشل تنزيل الفيديو');
       setDownloadProgress(prev => {
         const newProgress = { ...prev };
         delete newProgress[videoId];
@@ -238,7 +215,6 @@ const HomePage = () => {
       });
     }
   };
-
 
   const saveVideoToIndexedDB = (videoId, blob, fileName) => {
     return new Promise((resolve, reject) => {
@@ -604,24 +580,18 @@ const HomePage = () => {
       <div className="content-wrapper">
         {/* Main Video Section */}
         <div className={`main-video-section ${isMainPlayerActive ? 'player-active' : ''}`}>
-          <AdvancedVideoPlayer
+          <UCStyleVideoPlayer
+            key={`main-${currentVideo._id}`} // مفتاح فريد ومستقر
             ref={mainVideoRef}
-            videoUrl={getAssetUrl(currentVideo.videoUrl)}
-            isMuted={isMuted}
+            src={getAssetUrl(currentVideo.videoUrl)}
             videoId={currentVideo._id}
-            onDownload={(url, id, name) => downloadVideo(url, id, name)}
+            onDownload={downloadVideo}
             downloadProgress={downloadProgress[currentVideo._id]}
             isDownloaded={downloadedVideos.has(currentVideo._id)}
-            isPlayerActive={isMainPlayerActive}
-            onActivatePlayer={() => setIsMainPlayerActive(true)}
-            onDeactivatePlayer={() => setIsMainPlayerActive(false)}
-            showNavigationArrows={false}
+            autoplay={true} // ✅ مرر القيمة true للفيديو الأساسي
           />
 
-          <div className={`video-info ${isMainPlayerActive ? 'hidden' : ''}`}>
-            <p className="video-description">{currentVideo.description}</p>
-          </div>
-
+          {/* أبقيت على هذه الأزرار الخارجية، يمكنك تنسيقها لتظهر بجانب المشغل */}
           <div className={`action-buttons ${isMainPlayerActive ? 'hidden' : ''}`}>
             <div 
               className="action-btn-unified profile-btn"
@@ -652,23 +622,21 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Replies Section */}
+
+         {/* Replies Section */}
         <div className={`replies-section ${isReplyPlayerActive ? 'player-active' : ''}`}>
           {currentVideo?.replies?.length > 0 ? (
             <div className="reply-video-container">
-              <AdvancedVideoPlayer
+              {/* ✅ والتغيير هنا أيضاً */}
+              <UCStyleVideoPlayer
+                key={`reply-${currentVideo.replies[activeReplyIndex]._id}`} // مفتاح فريد ومستقر
                 ref={replyVideoRef}
-                videoUrl={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
-                isMuted={isMuted}
+                src={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
                 videoId={currentVideo.replies[activeReplyIndex]._id}
-                onDownload={(url, id, name) => downloadVideo(url, id, name)}
+                onDownload={downloadVideo}
                 downloadProgress={downloadProgress[currentVideo.replies[activeReplyIndex]._id]}
                 isDownloaded={downloadedVideos.has(currentVideo.replies[activeReplyIndex]._id)}
-                key={currentVideo.replies[activeReplyIndex]._id}
-                isPlayerActive={isReplyPlayerActive}
-                onActivatePlayer={() => setIsReplyPlayerActive(true)}
-                onDeactivatePlayer={() => setIsReplyPlayerActive(false)}
-                showNavigationArrows={true}
+                autoplay={false} // ✅ مرر القيمة false لفيديوهات الردود
               />
 
               {!isReplyPlayerActive && (
@@ -776,14 +744,7 @@ const HomePage = () => {
           </div>
         </div>
       )}
-{/* ✅ Toast Notification */}
-      {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
       <NavigationBar currentPage="home" />
     </div>
   );
