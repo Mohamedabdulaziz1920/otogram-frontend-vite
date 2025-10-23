@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaHeart, FaComment, FaChevronLeft, FaChevronRight,
-  FaVolumeUp, FaVolumeMute, FaMoon, FaSun, FaTrash
+  FaTrash
 } from 'react-icons/fa';
 import NavigationBar from '../components/NavigationBar';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // ✅ نحتاج useLocation
 import { useAuth, api } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+
+import AdvancedVideoPlayer from '../components/AdvancedVideoPlayer';
 import './HomePage.css';
 
 const HomePage = () => {
-  const location = useLocation();
+  const location = useLocation(); // ✅ مهم للانتقال من البروفايل
   const [videos, setVideos] = useState([]);
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [activeReplyIndex, setActiveReplyIndex] = useState(0);
@@ -18,22 +19,21 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [likedVideos, setLikedVideos] = useState(new Set());
   const [likedReplies, setLikedReplies] = useState(new Set());
-  const [isMuted, setIsMuted] = useState(false); // ✅ الصوت مفعّل افتراضياً
-  const [userInteracted, setUserInteracted] = useState(false); // ✅ تتبع أول تفاعل
+  const [isMuted] = useState(false);
+  const [userInteracted, setUserInteracted] = useState(false);
   
-  // 🎮 States للتحكم في التشغيل
-  const [isMainPlaying, setIsMainPlaying] = useState(false);
-  const [isReplyPlaying, setIsReplyPlaying] = useState(false);
-  const [showMainPauseIcon, setShowMainPauseIcon] = useState(false);
-  const [showReplyPauseIcon, setShowReplyPauseIcon] = useState(false);
+  const [isMainPlayerActive, setIsMainPlayerActive] = useState(false);
+  const [isReplyPlayerActive, setIsReplyPlayerActive] = useState(false);
 
-  // 🗑️ States لحذف الردود
   const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
   const [replyToDelete, setReplyToDelete] = useState(null);
 
+  const [downloadProgress, setDownloadProgress] = useState({});
+  const [downloadedVideos, setDownloadedVideos] = useState(new Set());
+
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+
   const mainVideoRef = useRef(null);
   const replyVideoRef = useRef(null);
   const lastScrollTime = useRef(0);
@@ -45,7 +45,6 @@ const HomePage = () => {
     return `${baseUrl}${url}`;
   };
 
-  // 🎲 دالة لخلط المصفوفة (Fisher-Yates Shuffle)
   const shuffleArray = (array) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -92,34 +91,52 @@ const HomePage = () => {
     }
   }, [user]);
 
-  // 1️⃣ جلب الفيديوهات
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
 
-  // ✅ تفعيل الصوت تلقائياً بعد أول تفاعل
+  // ✅ الانتقال التلقائي للفيديو من البروفايل - مهم جداً!
+  useEffect(() => {
+    if (location.state?.scrollToVideoId && videos.length > 0) {
+      const videoIndex = videos.findIndex(
+        v => v._id === location.state.scrollToVideoId
+      );
+      
+      if (videoIndex !== -1) {
+        console.log('✅ تم العثور على الفيديو في الموضع:', videoIndex);
+        setActiveVideoIndex(videoIndex);
+        setActiveReplyIndex(0);
+        
+        // مسح الـ state بعد الاستخدام
+        window.history.replaceState({}, document.title);
+      } else {
+        console.log('⚠️ الفيديو غير موجود في القائمة الحالية');
+      }
+    }
+  }, [location.state, videos]);
+
+  // باقي الكود كما هو...
+  useEffect(() => {
+    const loadDownloadedVideos = () => {
+      try {
+        const downloaded = localStorage.getItem('downloadedVideos');
+        if (downloaded) {
+          setDownloadedVideos(new Set(JSON.parse(downloaded)));
+        }
+      } catch (error) {
+        console.error('Error loading downloaded videos:', error);
+      }
+    };
+    loadDownloadedVideos();
+  }, []);
+
   useEffect(() => {
     const handleFirstInteraction = async () => {
       if (!userInteracted) {
         setUserInteracted(true);
-        
-        // تشغيل الفيديو مع الصوت
-        if (mainVideoRef.current && !isMainPlaying) {
-          mainVideoRef.current.muted = false;
-          setIsMuted(false);
-          
-          try {
-            await mainVideoRef.current.play();
-            setIsMainPlaying(true);
-            console.log('🔊 Video playing with sound after first interaction');
-          } catch (err) {
-            console.log('❌ Play failed:', err);
-          }
-        }
       }
     };
 
-    // الاستماع لأي تفاعل
     const events = ['click', 'touchstart', 'keydown'];
     events.forEach(event => {
       document.addEventListener(event, handleFirstInteraction, { once: true, passive: true });
@@ -130,63 +147,107 @@ const HomePage = () => {
         document.removeEventListener(event, handleFirstInteraction);
       });
     };
-  }, [userInteracted, isMainPlaying]);
+  }, [userInteracted]);
 
-  // 2️⃣ التوجيه التلقائي للفيديو
   useEffect(() => {
-    if (location.state?.scrollToVideoId && videos.length > 0) {
-      const videoIndex = videos.findIndex(v => v._id === location.state.scrollToVideoId);
-      
-      if (videoIndex !== -1) {
-        console.log('🎯 Found video at index:', videoIndex);
-        setActiveVideoIndex(videoIndex);
-        setActiveReplyIndex(0);
-        
-        window.history.replaceState({}, document.title);
-      } else {
-        console.log('⚠️ Video not found in current list');
+    setIsMainPlayerActive(false);
+    setIsReplyPlayerActive(false);
+  }, [activeVideoIndex]);
+
+  useEffect(() => {
+    setIsReplyPlayerActive(false);
+  }, [activeReplyIndex]);
+
+  const downloadVideo = async (videoUrl, videoId, fileName) => {
+    try {
+      setDownloadProgress(prev => ({ ...prev, [videoId]: 0 }));
+
+      const response = await fetch(getAssetUrl(videoUrl));
+      const contentLength = response.headers.get('content-length');
+      const total = parseInt(contentLength, 10);
+      let loaded = 0;
+
+      const reader = response.body.getReader();
+      const chunks = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        loaded += value.length;
+
+        const progress = Math.round((loaded / total) * 100);
+        setDownloadProgress(prev => ({ ...prev, [videoId]: progress }));
       }
-    }
-  }, [location.state, videos]);
 
-  // 🎬 التشغيل التلقائي للفيديو الرئيسي عند تغيير الفيديو
-  useEffect(() => {
-    if (mainVideoRef.current) {
-      mainVideoRef.current.currentTime = 0;
-      mainVideoRef.current.muted = isMuted;
-      
-      const playVideo = async () => {
-        try {
-          await mainVideoRef.current.play();
-          setIsMainPlaying(true);
-          console.log('✅ Main video playing, muted:', isMuted);
-        } catch (err) {
-          console.log('⚠️ Autoplay prevented (waiting for user interaction)');
-          setIsMainPlaying(false);
+      const blob = new Blob(chunks, { type: 'video/mp4' });
+      const url = URL.createObjectURL(blob);
+
+      await saveVideoToIndexedDB(videoId, blob, fileName);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || `video_${videoId}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const newDownloaded = new Set(downloadedVideos);
+      newDownloaded.add(videoId);
+      setDownloadedVideos(newDownloaded);
+      localStorage.setItem('downloadedVideos', JSON.stringify([...newDownloaded]));
+
+      setDownloadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[videoId];
+        return newProgress;
+      });
+
+      alert('✅ تم تنزيل الفيديو بنجاح!');
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('❌ فشل تنزيل الفيديو');
+      setDownloadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[videoId];
+        return newProgress;
+      });
+    }
+  };
+
+  const saveVideoToIndexedDB = (videoId, blob, fileName) => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideosDB', 1);
+
+      request.onerror = () => reject(request.error);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('videos')) {
+          db.createObjectStore('videos', { keyPath: 'id' });
         }
       };
 
-      playVideo();
-    }
-    
-    // إيقاف فيديو الرد عند تغيير الفيديو الرئيسي
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-      setIsReplyPlaying(false);
-    }
-  }, [activeVideoIndex, isMuted]);
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['videos'], 'readwrite');
+        const store = transaction.objectStore('videos');
+        
+        store.put({
+          id: videoId,
+          blob: blob,
+          fileName: fileName,
+          downloadedAt: new Date().toISOString()
+        });
 
-  // 🔄 إعادة تعيين فيديو الرد عند تغيير الرد
-  useEffect(() => {
-    if (replyVideoRef.current) {
-      replyVideoRef.current.pause();
-      replyVideoRef.current.currentTime = 0;
-      setIsReplyPlaying(false);
-    }
-  }, [activeReplyIndex]);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      };
+    });
+  };
 
-  // Helper functions
   const goToNextReply = useCallback(() => {
     setActiveReplyIndex(prev => {
       const currentVideo = videos[activeVideoIndex];
@@ -198,130 +259,86 @@ const HomePage = () => {
   }, [videos, activeVideoIndex]);
 
   const goToPrevReply = useCallback(() => {
-    setActiveReplyIndex(prev => {
-      if (prev > 0) {
-        return prev - 1;
-      }
-      return prev;
-    });
+    setActiveReplyIndex(prev => prev > 0 ? prev - 1 : prev);
   }, []);
 
-  // 🎮 التحكم في تشغيل الفيديو الرئيسي
-  const toggleMainVideo = () => {
-    if (mainVideoRef.current) {
-      if (isMainPlaying) {
-        mainVideoRef.current.pause();
-        setIsMainPlaying(false);
-      } else {
-        mainVideoRef.current.play();
-        setIsMainPlaying(true);
-        
-        setShowMainPauseIcon(true);
-        setTimeout(() => setShowMainPauseIcon(false), 1000);
-        
-        if (replyVideoRef.current && isReplyPlaying) {
-          replyVideoRef.current.pause();
-          setIsReplyPlaying(false);
-        }
-      }
-    }
-  };
+  useEffect(() => {
+    const SCROLL_THRESHOLD = 50;
+    const SCROLL_COOLDOWN = 800;
 
-  // 🎮 التحكم في تشغيل فيديو الرد
-  const toggleReplyVideo = () => {
-    if (replyVideoRef.current) {
-      if (isReplyPlaying) {
-        replyVideoRef.current.pause();
-        setIsReplyPlaying(false);
-      } else {
-        replyVideoRef.current.play();
-        setIsReplyPlaying(true);
-        
-        setShowReplyPauseIcon(true);
-        setTimeout(() => setShowReplyPauseIcon(false), 1000);
-        
-        if (mainVideoRef.current && isMainPlaying) {
-          mainVideoRef.current.pause();
-          setIsMainPlaying(false);
-        }
-      }
-    }
-  };
+    const handleWheel = (e) => {
+      const now = Date.now();
+      
+      if (now - lastScrollTime.current < SCROLL_COOLDOWN) return;
+      
+      const delta = e.deltaY;
+      
+      if (Math.abs(delta) < SCROLL_THRESHOLD) return;
 
-  // ✅ Touch events for mobile
+      if (isMainPlayerActive || isReplyPlayerActive) {
+        if (isMainPlayerActive) setIsMainPlayerActive(false);
+        if (isReplyPlayerActive) setIsReplyPlayerActive(false);
+      }
+      
+      if (delta > 0 && activeVideoIndex < videos.length - 1) {
+        setActiveVideoIndex(prev => prev + 1);
+        setActiveReplyIndex(0);
+        lastScrollTime.current = now;
+      } else if (delta < 0 && activeVideoIndex > 0) {
+        setActiveVideoIndex(prev => prev - 1);
+        setActiveReplyIndex(0);
+        lastScrollTime.current = now;
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [activeVideoIndex, videos.length, isMainPlayerActive, isReplyPlayerActive]);
+
   useEffect(() => {
     let touchStartY = 0;
     let touchStartX = 0;
     let touchStartTime = 0;
+    const SWIPE_THRESHOLD = 50;
+    const SWIPE_VELOCITY = 0.3;
 
-    const handleMainTouchStart = (e) => {
+    const handleTouchStart = (e) => {
       touchStartY = e.touches[0].clientY;
       touchStartX = e.touches[0].clientX;
       touchStartTime = Date.now();
     };
 
-    const handleMainTouchEnd = (e) => {
+    const handleTouchEnd = (e) => {
       const touchEndY = e.changedTouches[0].clientY;
-      const touchEndTime = Date.now();
-      const deltaY = touchStartY - touchEndY;
-      const deltaTime = touchEndTime - touchStartTime;
-
-      const velocity = Math.abs(deltaY) / deltaTime;
-
-      if (Math.abs(deltaY) > 50 || velocity > 0.3) {
-        if (deltaY > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-          }
-        }
-      }
-    };
-
-    const handleReplyTouchStart = (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartTime = Date.now();
-    };
-
-    const handleReplyTouchEnd = (e) => {
       const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
       const touchEndTime = Date.now();
-      
-      const deltaX = touchStartX - touchEndX;
       const deltaY = touchStartY - touchEndY;
+      const deltaX = touchStartX - touchEndX;
       const deltaTime = touchEndTime - touchStartTime;
-
       const velocityY = Math.abs(deltaY) / deltaTime;
       const velocityX = Math.abs(deltaX) / deltaTime;
 
       const isVerticalSwipe = Math.abs(deltaY) > Math.abs(deltaX);
       const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
 
-      if (isVerticalSwipe && (Math.abs(deltaY) > 50 || velocityY > 0.3)) {
-        if (deltaY > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-          }
+      if (isVerticalSwipe && (Math.abs(deltaY) > SWIPE_THRESHOLD || velocityY > SWIPE_VELOCITY)) {
+        if (isMainPlayerActive) setIsMainPlayerActive(false);
+        if (isReplyPlayerActive) setIsReplyPlayerActive(false);
+        
+        if (deltaY > 0 && activeVideoIndex < videos.length - 1) {
+          setActiveVideoIndex(prev => prev + 1);
+          setActiveReplyIndex(0);
+        } else if (deltaY < 0 && activeVideoIndex > 0) {
+          setActiveVideoIndex(prev => prev - 1);
+          setActiveReplyIndex(0);
         }
-      }
-      else if (isHorizontalSwipe && (Math.abs(deltaX) > 50 || velocityX > 0.3)) {
-        if (deltaX > 0) {
-          goToNextReply();
-        } else {
-          goToPrevReply();
+      } else if (isHorizontalSwipe && !isMainPlayerActive && !isReplyPlayerActive) {
+        if (Math.abs(deltaX) > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY) {
+          if (deltaX > 0) {
+            goToNextReply();
+          } else {
+            goToPrevReply();
+          }
         }
       }
     };
@@ -330,59 +347,37 @@ const HomePage = () => {
     const replySection = document.querySelector('.replies-section');
 
     if (mainSection) {
-      mainSection.addEventListener('touchstart', handleMainTouchStart, { passive: true });
-      mainSection.addEventListener('touchend', handleMainTouchEnd, { passive: true });
+      mainSection.addEventListener('touchstart', handleTouchStart, { passive: true });
+      mainSection.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
 
     if (replySection) {
-      replySection.addEventListener('touchstart', handleReplyTouchStart, { passive: true });
-      replySection.addEventListener('touchend', handleReplyTouchEnd, { passive: true });
+      replySection.addEventListener('touchstart', handleTouchStart, { passive: true });
+      replySection.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
 
     return () => {
       if (mainSection) {
-        mainSection.removeEventListener('touchstart', handleMainTouchStart);
-        mainSection.removeEventListener('touchend', handleMainTouchEnd);
+        mainSection.removeEventListener('touchstart', handleTouchStart);
+        mainSection.removeEventListener('touchend', handleTouchEnd);
       }
       if (replySection) {
-        replySection.removeEventListener('touchstart', handleReplyTouchStart);
-        replySection.removeEventListener('touchend', handleReplyTouchEnd);
+        replySection.removeEventListener('touchstart', handleTouchStart);
+        replySection.removeEventListener('touchend', handleTouchEnd);
       }
     };
-  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
+  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply, isMainPlayerActive, isReplyPlayerActive]);
 
-  // ✅ Scroll handler for vertical navigation
-  useEffect(() => {
-    const handleWheel = (e) => {
-      const now = Date.now();
-      if (now - lastScrollTime.current < 500) return;
-      
-      const delta = e.deltaY;
-      
-      if (Math.abs(delta) > 30) {
-        if (delta > 0) {
-          if (activeVideoIndex < videos.length - 1) {
-            setActiveVideoIndex(prev => prev + 1);
-            setActiveReplyIndex(0);
-            lastScrollTime.current = now;
-          }
-        } else {
-          if (activeVideoIndex > 0) {
-            setActiveVideoIndex(prev => prev - 1);
-            setActiveReplyIndex(0);
-            lastScrollTime.current = now;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [activeVideoIndex, videos.length]);
-
-  // ✅ Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isMainPlayerActive) setIsMainPlayerActive(false);
+        if (isReplyPlayerActive) setIsReplyPlayerActive(false);
+        return;
+      }
+
+      if (isMainPlayerActive || isReplyPlayerActive) return;
+
       switch(e.key) {
         case 'ArrowDown':
           if (activeVideoIndex < videos.length - 1) {
@@ -396,43 +391,20 @@ const HomePage = () => {
             setActiveReplyIndex(0);
           }
           break;
+        case 'ArrowLeft':
+          goToNextReply();
+          break;
         case 'ArrowRight':
           goToPrevReply();
           break;
-        case 'ArrowLeft':
-          goToNextReply();
+        default:
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply]);
-
-  // 🔊 التحكم في كتم/تفعيل الصوت
-  const toggleMute = () => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    
-    if (mainVideoRef.current) {
-      mainVideoRef.current.muted = newMutedState;
-      
-      if (!isMainPlaying && !newMutedState) {
-        mainVideoRef.current.play()
-          .then(() => {
-            setIsMainPlaying(true);
-            console.log('✅ Video playing after unmute');
-          })
-          .catch(err => {
-            console.log('❌ Play error after unmute:', err);
-          });
-      }
-    }
-    
-    if (replyVideoRef.current) {
-      replyVideoRef.current.muted = newMutedState;
-    }
-  };
+  }, [activeVideoIndex, videos.length, goToNextReply, goToPrevReply, isMainPlayerActive, isReplyPlayerActive]);
 
   const handleLikeMainVideo = async (videoId) => {
     if (!user) {
@@ -523,7 +495,6 @@ const HomePage = () => {
 
   const navigateToProfile = (username) => navigate(`/profile/${username}`);
 
-  // 🗑️ التحقق من صلاحية حذف الرد
   const canDeleteReply = (reply, mainVideo) => {
     if (!user) return false;
     
@@ -534,13 +505,11 @@ const HomePage = () => {
     return userId === replyOwnerId || userId === videoOwnerId;
   };
 
-  // 🗑️ فتح modal تأكيد الحذف
   const confirmDeleteReply = (replyId, videoId) => {
     setReplyToDelete({ replyId, videoId });
     setShowDeleteReplyModal(true);
   };
 
-  // 🗑️ حذف الرد
   const handleDeleteReply = async () => {
     if (!replyToDelete) return;
     
@@ -570,17 +539,14 @@ const HomePage = () => {
       
       setShowDeleteReplyModal(false);
       setReplyToDelete(null);
-      
-      console.log('✅ تم حذف الرد بنجاح');
     } catch (error) {
-      console.error('❌ Error deleting reply:', error);
+      console.error('Error deleting reply:', error);
       alert(error.response?.data?.error || 'فشل حذف الرد');
     }
   };
 
   const currentVideo = videos[activeVideoIndex];
 
-  // ❌ معالجة الأخطاء فقط
   if (error) {
     return (
       <div className="error-container">
@@ -594,7 +560,6 @@ const HomePage = () => {
     );
   }
   
-  // ❌ حالة عدم وجود فيديوهات
   if (!loading && !videos?.length) {
     return (
       <div className="empty-state-container">
@@ -607,72 +572,34 @@ const HomePage = () => {
     );
   }
 
-  // ✅ عرض محتوى فارغ أثناء التحميل - لا شاشة تحميل منفصلة
   if (loading || !currentVideo) {
     return null;
   }
 
   return (
     <div className="home-page">
-      {/* Theme Toggle */}
-      <button className="theme-toggle" onClick={toggleTheme}>
-        {theme === 'dark' ? <FaSun /> : <FaMoon />}
-      </button>
-
-      {/* Mute Toggle */}
-      <button 
-        className={`mute-toggle ${isMuted ? 'is-muted' : ''}`} 
-        onClick={toggleMute}
-        title={isMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
-      >
-        {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-      </button>
-      
       <div className="content-wrapper">
-        {/* Main Video Section - 50% */}
-        <div className="main-video-section">
-          <div className="video-container" onClick={toggleMainVideo}>
-            <video
-              ref={mainVideoRef}
-              src={getAssetUrl(currentVideo.videoUrl)}
-              className="video-player"
-              loop
-              muted={isMuted}
-              playsInline
-              autoPlay
-            />
-            
-            {/* Play/Pause Overlay */}
-            {!isMainPlaying && (
-              <div className="play-overlay">
-                <div className="play-button">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
-            )}
+        {/* Main Video Section */}
+        <div className={`main-video-section ${isMainPlayerActive ? 'player-active' : ''}`}>
+          <AdvancedVideoPlayer
+            ref={mainVideoRef}
+            videoUrl={getAssetUrl(currentVideo.videoUrl)}
+            isMuted={isMuted}
+            videoId={currentVideo._id}
+            onDownload={(url, id, name) => downloadVideo(url, id, name)}
+            downloadProgress={downloadProgress[currentVideo._id]}
+            isDownloaded={downloadedVideos.has(currentVideo._id)}
+            isPlayerActive={isMainPlayerActive}
+            onActivatePlayer={() => setIsMainPlayerActive(true)}
+            onDeactivatePlayer={() => setIsMainPlayerActive(false)}
+            showNavigationArrows={false}
+          />
 
-            {/* Pause Indicator */}
-            {isMainPlaying && showMainPauseIcon && (
-              <div className="pause-indicator">
-                <div className="pause-icon">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                  </svg>
-                </div>
-              </div>
-            )}
-            
-            <div className="video-gradient"></div>
-          </div>
-
-          <div className="video-info">
+          <div className={`video-info ${isMainPlayerActive ? 'hidden' : ''}`}>
             <p className="video-description">{currentVideo.description}</p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="action-buttons">
+          <div className={`action-buttons ${isMainPlayerActive ? 'hidden' : ''}`}>
             <div 
               className="action-btn-unified profile-btn"
               onClick={() => navigateToProfile(currentVideo.user.username)}
@@ -700,108 +627,73 @@ const HomePage = () => {
               <span className="count">{currentVideo.replies?.length || 0}</span>
             </button>
           </div>
-
-          {/* Video Indicators */}
-          <div className="video-indicators">
-            {videos.map((_, index) => (
-              <div 
-                key={index}
-                className={`indicator ${index === activeVideoIndex ? 'active' : ''} ${index < activeVideoIndex ? 'passed' : ''}`}
-                onClick={() => {
-                  setActiveVideoIndex(index);
-                  setActiveReplyIndex(0);
-                }}
-              />
-            ))}
-          </div>
         </div>
 
-        {/* Replies Section - 50% */}
-        <div className="replies-section">
+        {/* Replies Section */}
+        <div className={`replies-section ${isReplyPlayerActive ? 'player-active' : ''}`}>
           {currentVideo?.replies?.length > 0 ? (
             <div className="reply-video-container">
-              <div className="reply-video-wrapper" onClick={toggleReplyVideo}>
-                <video
-                  ref={replyVideoRef}
-                  key={currentVideo.replies[activeReplyIndex]._id}
-                  src={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
-                  className="reply-video"
-                  loop
-                  muted={isMuted}
-                  playsInline
-                  autoPlay
-                />
+              <AdvancedVideoPlayer
+                ref={replyVideoRef}
+                videoUrl={getAssetUrl(currentVideo.replies[activeReplyIndex].videoUrl)}
+                isMuted={isMuted}
+                videoId={currentVideo.replies[activeReplyIndex]._id}
+                onDownload={(url, id, name) => downloadVideo(url, id, name)}
+                downloadProgress={downloadProgress[currentVideo.replies[activeReplyIndex]._id]}
+                isDownloaded={downloadedVideos.has(currentVideo.replies[activeReplyIndex]._id)}
+                key={currentVideo.replies[activeReplyIndex]._id}
+                isPlayerActive={isReplyPlayerActive}
+                onActivatePlayer={() => setIsReplyPlayerActive(true)}
+                onDeactivatePlayer={() => setIsReplyPlayerActive(false)}
+                showNavigationArrows={true}
+              />
 
-                {/* 🗑️ زر الحذف */}
-                {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
-                  <button
-                    className="delete-reply-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      confirmDeleteReply(
-                        currentVideo.replies[activeReplyIndex]._id,
-                        currentVideo._id
-                      );
-                    }}
-                    title="حذف الرد"
-                  >
-                    <FaTrash />
-                  </button>
-                )}
+              {!isReplyPlayerActive && (
+                <>
+                  {canDeleteReply(currentVideo.replies[activeReplyIndex], currentVideo) && (
+                    <button
+                      className="delete-reply-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmDeleteReply(
+                          currentVideo.replies[activeReplyIndex]._id,
+                          currentVideo._id
+                        );
+                      }}
+                      title="حذف الرد"
+                    >
+                      <FaTrash />
+                    </button>
+                  )}
 
-                {/* Play/Pause Overlay للرد */}
-                {!isReplyPlaying && (
-                  <div className="play-overlay">
-                    <div className="play-button">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
+                  <div className="reply-info">
+                    <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
                   </div>
-                )}
 
-                {/* Pause Indicator للرد */}
-                {isReplyPlaying && showReplyPauseIcon && (
-                  <div className="pause-indicator">
-                    <div className="pause-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                      </svg>
+                  <div className="reply-actions">
+                    <div 
+                      className="action-btn-unified reply-profile-btn"
+                      onClick={() => navigateToProfile(currentVideo.replies[activeReplyIndex].user.username)}
+                    >
+                      <img 
+                        src={getAssetUrl(currentVideo.replies[activeReplyIndex].user.profileImage) || '/default-avatar.png'} 
+                        alt={currentVideo.replies[activeReplyIndex].user.username}
+                        className="profile-image"
+                      />
                     </div>
+
+                    <button
+                      className={`action-btn-unified ${likedReplies.has(currentVideo.replies[activeReplyIndex]._id) ? 'liked' : ''}`}
+                      onClick={() => handleLikeReply(currentVideo.replies[activeReplyIndex]._id, currentVideo._id)}
+                    >
+                      <FaHeart />
+                      <span className="count">{currentVideo.replies[activeReplyIndex].likes?.length || 0}</span>
+                    </button>
                   </div>
-                )}
+                </>
+              )}
 
-                <div className="reply-gradient"></div>
-              </div>
-
-              <div className="reply-info">
-                <p className="reply-description">{currentVideo.replies[activeReplyIndex].description}</p>
-              </div>
-
-              {/* Reply Actions */}
-              <div className="reply-actions">
-                <div 
-                  className="action-btn-unified reply-profile-btn"
-                  onClick={() => navigateToProfile(currentVideo.replies[activeReplyIndex].user.username)}
-                >
-                  <img 
-                    src={getAssetUrl(currentVideo.replies[activeReplyIndex].user.profileImage) || '/default-avatar.png'} 
-                    alt={currentVideo.replies[activeReplyIndex].user.username}
-                    className="profile-image"
-                  />
-                </div>
-
-                <button
-                  className={`action-btn-unified ${likedReplies.has(currentVideo.replies[activeReplyIndex]._id) ? 'liked' : ''}`}
-                  onClick={() => handleLikeReply(currentVideo.replies[activeReplyIndex]._id, currentVideo._id)}
-                >
-                  <FaHeart />
-                  <span className="count">{currentVideo.replies[activeReplyIndex].likes?.length || 0}</span>
-                </button>
-              </div>
-
-              {/* Navigation Arrows */}
-              {currentVideo.replies.length > 1 && (
+              {currentVideo.replies.length > 0 && (
                 <>
                   <button 
                     className={`reply-nav reply-nav-right ${activeReplyIndex === 0 ? 'disabled' : ''}`}
@@ -820,8 +712,7 @@ const HomePage = () => {
                 </>
               )}
 
-              {/* Reply Counter */}
-              <div className="reply-counter">
+              <div className={`reply-counter ${isReplyPlayerActive ? 'player-mode' : ''}`}>
                 {activeReplyIndex + 1} / {currentVideo.replies.length}
               </div>
             </div>
@@ -842,7 +733,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* 🗑️ Delete Reply Modal */}
       {showDeleteReplyModal && (
         <div className="modal-overlay" onClick={() => setShowDeleteReplyModal(false)}>
           <div className="modal-content delete-modal" onClick={e => e.stopPropagation()}>
