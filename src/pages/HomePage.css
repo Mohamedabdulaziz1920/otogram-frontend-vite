@@ -1,25 +1,40 @@
 /* ========================================
-   HOME PAGE - REDESIGNED LAYOUT
+   HOME PAGE - PROFESSIONAL LAYOUT
    ======================================== */
 
-/* Variables */
+/* ========================================
+   1. VARIABLES & THEME
+   ======================================== */
+
 :root {
+  /* Colors */
   --primary-color: #fe2c55;
   --secondary-color: #25f4ee;
+  --accent-gold: #C8A882;
+  
+  /* Backgrounds */
   --bg-primary: #000000;
   --bg-secondary: #161823;
   --bg-tertiary: #1a1a2e;
+  
+  /* Text */
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.75);
   --text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* UI Elements */
   --border-color: rgba(255, 255, 255, 0.1);
   --overlay-bg: rgba(0, 0, 0, 0.7);
   --card-bg: rgba(255, 255, 255, 0.1);
+  
+  /* Sizes */
   --nav-height: 60px;
+  --action-btn-size: 56px;
+  --radius: 12px;
+  
+  /* Effects */
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --radius: 12px;
-  --action-btn-size: 56px;
 }
 
 /* Light Theme */
@@ -38,19 +53,22 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Reset */
+/* ========================================
+   2. RESET & BASE STYLES
+   ======================================== */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* لا تضع overflow: hidden على html و body */
-html, body {
+html,
+body {
   height: 100%;
   background: var(--bg-primary);
-  transition: background-color 0.3s ease;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 body {
@@ -59,7 +77,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Main Container */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ========================================
+   3. MAIN LAYOUT
+   ======================================== */
+
 .home-page {
   width: 100vw;
   height: 100vh;
@@ -68,22 +94,21 @@ body {
   position: relative;
   overflow: hidden;
   transition: background-color 0.3s ease;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* Content Wrapper - 50/50 Split بعد خصم الفوتر */
 .content-wrapper {
   width: 100%;
   height: calc(100vh - var(--nav-height));
   height: calc(100dvh - var(--nav-height));
   display: flex;
   position: relative;
-  margin: 0;
-  padding: 0;
-  gap: 0; /* ✅ لا توجد مسافات */
+  gap: 0;
 }
 
 /* ========================================
-   MAIN VIDEO SECTION - 50%
+   4. MAIN VIDEO SECTION (50%)
    ======================================== */
 
 .main-video-section {
@@ -93,8 +118,22 @@ body {
   position: relative;
   background: var(--bg-primary);
   overflow: hidden;
-  margin: 0;
-  padding: 0;
+  transition: var(--transition);
+}
+
+/* Player Active State */
+.main-video-section.player-active .video-info,
+.main-video-section.player-active .action-buttons {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
 
 .video-player {
@@ -102,8 +141,6 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  margin: 0;
-  padding: 0;
 }
 
 /* Video Gradient */
@@ -136,6 +173,14 @@ body {
   left: 20px;
   right: calc(var(--action-btn-size) + 40px);
   z-index: 10;
+  transition: opacity 0.3s ease;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.video-info.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .user-info {
@@ -165,11 +210,10 @@ body {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin: 0;
 }
 
 /* ========================================
-   ACTION BUTTONS - UNIFIED SIZE
+   5. ACTION BUTTONS
    ======================================== */
 
 .action-buttons {
@@ -181,6 +225,12 @@ body {
   align-items: center;
   gap: 16px;
   z-index: 20;
+  transition: opacity 0.3s ease;
+}
+
+.action-buttons.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .action-btn-unified {
@@ -199,8 +249,6 @@ body {
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition);
-  position: relative;
-  padding: 0;
   outline: none;
 }
 
@@ -212,19 +260,12 @@ body {
 .action-btn-unified:hover {
   transform: scale(1.1);
   border-color: var(--primary-color);
-  background: var(--card-bg);
-}
-
-[data-theme="light"] .action-btn-unified:hover {
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .action-btn-unified:active {
   transform: scale(0.95);
 }
 
-/* Profile Button */
 .action-btn-unified.profile-btn {
   padding: 3px;
 }
@@ -234,6 +275,17 @@ body {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.action-btn-unified svg {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.action-btn-unified .count {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* Like Animation */
@@ -250,54 +302,117 @@ body {
   50% { transform: scale(1.2); }
 }
 
-/* Icon and Count */
-.action-btn-unified svg {
-  font-size: 24px;
-  flex-shrink: 0;
-}
+/* ========================================
+   6. PLAY/PAUSE CONTROLS
+   ======================================== */
 
-.action-btn-unified .count {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-/* Video Indicators */
-.video-indicators {
+.play-overlay {
   position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
   z-index: 10;
+  animation: fadeIn 0.3s ease;
 }
 
-.indicator {
-  width: 3px;
-  height: 16px;
-  background: var(--card-bg);
-  border-radius: 2px;
-  transition: var(--transition);
+.play-button {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #A8845F 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 32px rgba(200, 168, 130, 0.4),
+    0 0 0 8px rgba(200, 168, 130, 0.1);
+  animation: playPulse 2s ease-in-out infinite;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
-.indicator:hover {
-  background: var(--text-muted);
+.play-button:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 12px 40px rgba(200, 168, 130, 0.6),
+    0 0 0 12px rgba(200, 168, 130, 0.15);
 }
 
-.indicator.active {
-  background: var(--primary-color);
-  height: 28px;
+@keyframes playPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 8px 32px rgba(200, 168, 130, 0.4),
+      0 0 0 8px rgba(200, 168, 130, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 12px 40px rgba(200, 168, 130, 0.6),
+      0 0 0 12px rgba(200, 168, 130, 0.2);
+  }
 }
 
-.indicator.passed {
-  background: var(--text-muted);
+.play-button svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  margin-left: 4px;
+}
+
+.pause-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  animation: fadeOut 1s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+.pause-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(200, 168, 130, 0.5);
+}
+
+.pause-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--accent-gold);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 /* ========================================
-   REPLIES SECTION - 50%
+   7. REPLIES SECTION (50%)
    ======================================== */
 
 .replies-section {
@@ -307,18 +422,28 @@ body {
   position: relative;
   background: var(--bg-secondary);
   overflow: hidden;
-  margin: 0;
-  padding: 0;
-  transition: background-color 0.3s ease;
+  transition: var(--transition);
 }
 
-/* Reply Video Container */
+/* Player Active State */
+.replies-section.player-active .reply-info,
+.replies-section.player-active .reply-actions,
+.replies-section.player-active .delete-reply-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .reply-video-container {
   width: 100%;
   height: 100%;
   position: relative;
-  margin: 0;
-  padding: 0;
+}
+
+.reply-video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
 
 .reply-video {
@@ -326,8 +451,6 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  margin: 0;
-  padding: 0;
 }
 
 /* Reply Gradient */
@@ -341,7 +464,6 @@ body {
     var(--overlay-bg) 100%
   );
   pointer-events: none;
-  transition: background 0.3s ease;
 }
 
 [data-theme="light"] .reply-gradient {
@@ -360,6 +482,14 @@ body {
   left: 20px;
   right: calc(var(--action-btn-size) + 40px);
   z-index: 10;
+  transition: opacity 0.3s ease;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.reply-info.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .reply-user {
@@ -388,7 +518,6 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin: 0;
 }
 
 /* Reply Actions */
@@ -401,9 +530,18 @@ body {
   align-items: center;
   gap: 16px;
   z-index: 20;
+  transition: opacity 0.3s ease;
 }
 
-/* Navigation Arrows - Always Visible */
+.reply-actions.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   8. NAVIGATION ARROWS
+   ======================================== */
+
 .reply-nav {
   position: absolute;
   top: 50%;
@@ -420,7 +558,7 @@ body {
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition);
-  z-index: 30;
+  z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
@@ -435,14 +573,9 @@ body {
   transform: translateY(-50%) scale(1.1);
 }
 
-[data-theme="light"] .reply-nav:hover:not(.disabled) {
-  background: var(--primary-color);
-}
-
 .reply-nav.disabled {
   opacity: 0.3;
   cursor: not-allowed;
-  background: rgba(0, 0, 0, 0.3);
 }
 
 .reply-nav-right {
@@ -457,7 +590,10 @@ body {
   font-size: 24px;
 }
 
-/* Reply Counter */
+/* ========================================
+   9. REPLY COUNTER
+   ======================================== */
+
 .reply-counter {
   position: absolute;
   top: 20px;
@@ -472,6 +608,7 @@ body {
   font-weight: 600;
   z-index: 20;
   border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
 }
 
 [data-theme="light"] .reply-counter {
@@ -479,7 +616,52 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* No Replies State */
+/* Counter in Player Mode */
+.reply-counter.player-mode {
+  bottom: 80px;
+  top: auto;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ========================================
+   10. DELETE REPLY BUTTON
+   ======================================== */
+
+.delete-reply-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(255, 59, 59, 0.95);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(255, 59, 59, 0.4);
+}
+
+.delete-reply-btn:hover {
+  background: rgba(255, 23, 68, 1);
+  transform: scale(1.15);
+  box-shadow: 0 4px 20px rgba(255, 59, 59, 0.6);
+}
+
+.delete-reply-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   11. NO REPLIES STATE
+   ======================================== */
+
 .no-replies {
   width: 100%;
   height: 100%;
@@ -487,7 +669,6 @@ body {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-  transition: background 0.3s ease;
   padding: 40px;
 }
 
@@ -511,7 +692,6 @@ body {
   justify-content: center;
   color: var(--text-muted);
   font-size: 36px;
-  transition: background-color 0.3s ease;
 }
 
 .no-replies h3 {
@@ -547,14 +727,13 @@ body {
 }
 
 /* ========================================
-   GLOBAL CONTROLS
+   12. GLOBAL CONTROLS
    ======================================== */
 
-/* Theme Toggle */
-.theme-toggle {
+.theme-toggle,
+.mute-toggle {
   position: fixed;
   top: 20px;
-  left: 20px;
   z-index: 100;
   width: 48px;
   height: 48px;
@@ -571,7 +750,16 @@ body {
   box-shadow: var(--shadow);
 }
 
-[data-theme="light"] .theme-toggle {
+.theme-toggle {
+  left: 20px;
+}
+
+.mute-toggle {
+  right: 20px;
+}
+
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .mute-toggle {
   background: rgba(255, 255, 255, 0.95);
 }
 
@@ -580,60 +768,124 @@ body {
   border-color: var(--primary-color);
 }
 
-.theme-toggle svg {
-  font-size: 22px;
-}
-
-/* Volume Button */
-.volume-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow);
-}
-
-[data-theme="light"] .volume-btn {
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.volume-btn:hover {
+.mute-toggle:hover {
   transform: scale(1.1);
   border-color: var(--primary-color);
 }
 
-.volume-btn svg {
+.theme-toggle svg,
+.mute-toggle svg {
   font-size: 22px;
 }
 
 /* ========================================
-   LOADING & ERROR STATES
+   13. MODAL DIALOGS
    ======================================== */
 
-.loading-container {
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: var(--bg-primary);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid var(--border-color);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header h3 {
+  margin: 0 0 20px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.modal-body p {
+  margin: 0 0 28px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.confirm-delete-btn {
+  background: linear-gradient(135deg, #ff3b3b 0%, #ff1744 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(255, 59, 59, 0.3);
+}
+
+.confirm-delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 59, 59, 0.4);
+}
+
+.cancel-modal-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cancel-modal-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ========================================
+   14. LOADING & ERROR STATES
+   ======================================== */
+
+.loading-container,
+.error-container,
+.empty-state-container {
   width: 100vw;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
-  transition: background-color 0.3s ease;
-}
-
-.loading-wrapper {
-  text-align: center;
 }
 
 .loading-spinner {
@@ -650,39 +902,29 @@ body {
   to { transform: rotate(360deg); }
 }
 
-.loading-wrapper p {
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
-.error-container {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-primary);
-  transition: background-color 0.3s ease;
+.error-wrapper,
+.empty-wrapper {
+  text-align: center;
+  padding: 40px;
 }
 
 .error-wrapper {
-  text-align: center;
-  padding: 40px;
   background: var(--bg-secondary);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
   max-width: 400px;
-  transition: background-color 0.3s ease;
 }
 
-.error-wrapper h2 {
+.error-wrapper h2,
+.empty-wrapper h2 {
   color: var(--text-primary);
   font-size: 24px;
   margin-bottom: 15px;
 }
 
-.error-wrapper p {
+.error-wrapper p,
+.empty-wrapper p {
   color: var(--text-secondary);
   font-size: 16px;
   margin-bottom: 25px;
@@ -705,35 +947,8 @@ body {
   transform: translateY(-2px);
 }
 
-.empty-state-container {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-primary);
-  transition: background-color 0.3s ease;
-}
-
-.empty-wrapper {
-  text-align: center;
-  padding: 40px;
-}
-
-.empty-wrapper h2 {
-  color: var(--text-primary);
-  font-size: 28px;
-  margin-bottom: 15px;
-}
-
-.empty-wrapper p {
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
 /* ========================================
-   RESPONSIVE DESIGN
+   15. RESPONSIVE DESIGN
    ======================================== */
 
 @media (max-width: 768px) {
@@ -770,14 +985,42 @@ body {
   }
 
   .theme-toggle,
-  .volume-btn {
+  .mute-toggle {
     width: 44px;
     height: 44px;
   }
 
   .theme-toggle svg,
-  .volume-btn svg {
+  .mute-toggle svg {
     font-size: 20px;
+  }
+
+  .play-button,
+  .pause-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .play-button svg,
+  .pause-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .delete-reply-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-delete-btn,
+  .cancel-modal-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -807,30 +1050,55 @@ body {
   .reply-nav-left {
     left: 15px;
   }
+
+  .play-button,
+  .pause-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .play-button svg,
+  .pause-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .delete-reply-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
 
 /* ========================================
-   ACCESSIBILITY & PERFORMANCE
+   16. TOUCH & ACCESSIBILITY
    ======================================== */
 
 .home-page {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-}
-
-.video-description,
-.reply-description {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  user-select: text;
-}
-
-button {
-  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
+.content-wrapper {
+  touch-action: pan-y;
+}
+
+.main-video-section {
+  touch-action: pan-y;
+}
+
+.replies-section {
+  touch-action: pan-x pan-y;
+}
+
+.video-player,
+.reply-video {
+  touch-action: none;
+  pointer-events: auto;
+}
+
+/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -845,591 +1113,30 @@ button {
   color: white;
 }
 
-/* Smooth transitions for theme switching */
+/* ========================================
+   17. SMOOTH THEME TRANSITIONS
+   ======================================== */
+
 *:not(video):not(img):not(svg) {
   transition-property: background-color, color, border-color;
   transition-duration: 0.3s;
   transition-timing-function: ease;
 }
+
 /* ========================================
-   TOUCH SUPPORT FOR MOBILE - UPDATED
+   18. GENERAL UTILITIES
    ======================================== */
 
-/* ✅ السماح بالتمرير العمودي على كامل الصفحة */
-.home-page {
-  touch-action: manipulation; /* السماح بجميع التفاعلات */
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.content-wrapper {
-  touch-action: pan-y; /* التمرير العمودي */
-  -webkit-overflow-scrolling: touch;
-}
-
-/* قسم الفيديو الرئيسي */
-.main-video-section {
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  user-select: none;
-}
-
-/* قسم الردود - يدعم الأفقي والعمودي */
-.replies-section {
-  touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: touch;
-  user-select: none;
-}
-
-/* الفيديوهات نفسها */
+/* Performance Optimizations */
 .video-player,
 .reply-video {
-  touch-action: none; /* منع التفاعلات الافتراضية */
-  pointer-events: auto;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
-/* الأزرار */
-.action-buttons,
-.reply-actions,
-.action-btn-unified,
-.reply-nav {
-  touch-action: manipulation;
-}
-/* ==================== Video Container ==================== */
-/* ==================== Video Container ==================== */
-.video-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.reply-video-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ==================== Play Overlay ==================== */
-.play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(5px);
-  z-index: 10;
-  transition: all 0.3s ease;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ==================== Play Button ==================== */
-.play-button {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #C8A882 0%, #A8845F 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 
-    0 8px 32px rgba(200, 168, 130, 0.4),
-    0 0 0 8px rgba(200, 168, 130, 0.1);
-  animation: playPulse 2s ease-in-out infinite;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
-}
-
-.play-button:hover {
-  transform: scale(1.1);
-  box-shadow: 
-    0 12px 40px rgba(200, 168, 130, 0.6),
-    0 0 0 12px rgba(200, 168, 130, 0.15);
-}
-
-.play-button:active {
-  transform: scale(0.95);
-}
-
-@keyframes playPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 
-      0 8px 32px rgba(200, 168, 130, 0.4),
-      0 0 0 8px rgba(200, 168, 130, 0.1);
-  }
-  50% {
-    transform: scale(1.08);
-    box-shadow: 
-      0 12px 40px rgba(200, 168, 130, 0.6),
-      0 0 0 16px rgba(200, 168, 130, 0.15);
-  }
-}
-
-.play-button svg {
-  width: 32px;
-  height: 32px;
-  color: white;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  margin-left: 4px;
-}
-
-/* ==================== Pause Indicator ==================== */
-.pause-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 15;
-  animation: fadeOut 1s ease forwards;
-  pointer-events: none;
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.15);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-  }
-}
-
-.pause-icon {
-  width: 80px;
-  height: 80px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid rgba(200, 168, 130, 0.5);
-}
-
-.pause-icon svg {
-  width: 32px;
-  height: 32px;
-  color: #C8A882;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-/* ==================== تأثيرات عند التحويم ==================== */
-.video-container:hover .play-overlay,
-.reply-video-wrapper:hover .play-overlay {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-/* ==================== للموبايل ==================== */
-@media (max-width: 768px) {
-  .play-button {
-    width: 70px;
-    height: 70px;
-  }
-
-  .play-button svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  .pause-icon {
-    width: 70px;
-    height: 70px;
-  }
-
-  .pause-icon svg {
-    width: 28px;
-    height: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .play-button {
-    width: 60px;
-    height: 60px;
-  }
-
-  .play-button svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .pause-icon {
-    width: 60px;
-    height: 60px;
-  }
-
-  .pause-icon svg {
-    width: 24px;
-    height: 24px;
-  }
-}
-/* زر حذف الرد */
-/* 🗑️ زر حذف الرد - في الزاوية اليسرى العليا */
-.delete-reply-btn {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: rgba(255, 59, 59, 0.95);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  z-index: 100;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(255, 59, 59, 0.4);
-}
-
-.delete-reply-btn:hover {
-  background: rgba(255, 23, 68, 1);
-  transform: scale(1.15);
-  box-shadow: 0 4px 20px rgba(255, 59, 59, 0.6);
-}
-
-.delete-reply-btn:active {
-  transform: scale(0.95);
-}
-
-/* تأكد من أن reply-video-wrapper له position relative */
-.reply-video-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Modal Content */
-.modal-content {
-  background: var(--surface-color, #ffffff);
-  border-radius: 20px;
-  padding: 28px;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Modal Header */
-.modal-header {
-  margin-bottom: 20px;
-}
-
-.modal-header h3 {
-  margin: 0;
-  color: var(--text-primary, #1a1a1a);
-  font-size: 22px;
-  font-weight: 700;
-}
-
-/* Modal Body */
-.modal-body {
-  margin-bottom: 28px;
-}
-
-.modal-body p {
-  margin: 0;
-  color: var(--text-secondary, #666);
-  line-height: 1.6;
-  font-size: 15px;
-}
-
-/* Modal Actions */
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-/* Confirm Delete Button */
-.confirm-delete-btn {
-  background: linear-gradient(135deg, #ff3b3b 0%, #ff1744 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 59, 59, 0.3);
-}
-
-.confirm-delete-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 59, 59, 0.4);
-}
-
-.confirm-delete-btn:active {
-  transform: translateY(0);
-}
-
-/* Cancel Button */
-.cancel-modal-btn {
-  background: var(--bg-secondary, #f5f5f5);
-  color: var(--text-primary, #1a1a1a);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.cancel-modal-btn:hover {
-  background: var(--bg-tertiary, #e8e8e8);
-}
-
-.cancel-modal-btn:active {
-  transform: scale(0.98);
-}
-
-/* Dark Mode */
-[data-theme="dark"] .modal-content {
-  background: #1e1e1e;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-}
-
-[data-theme="dark"] .modal-header h3 {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .modal-body p {
-  color: #aaaaaa;
-}
-
-[data-theme="dark"] .cancel-modal-btn {
-  background: #2a2a2a;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .cancel-modal-btn:hover {
-  background: #333333;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .delete-reply-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-    top: 12px;
-    left: 12px;
-  }
-
-  .modal-content {
-    padding: 24px;
-    max-width: 92%;
-    border-radius: 16px;
-  }
-
-  .modal-header h3 {
-    font-size: 20px;
-  }
-
-  .modal-body p {
-    font-size: 14px;
-  }
-
-  .modal-actions {
-    flex-direction: column-reverse;
-    gap: 10px;
-  }
-
-  .confirm-delete-btn,
-  .cancel-modal-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .delete-reply-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-    top: 10px;
-    left: 10px;
-  }
-
-  .modal-content {
-    padding: 20px;
-  }
-
-  .modal-header h3 {
-    font-size: 18px;
-  }
-}
-/* ==================== Mute Toggle - Enhanced ==================== */
-.mute-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* حالة الصوت مفعّل */
-.mute-toggle:not(.is-muted) {
-  background: linear-gradient(135deg, #C8A882 0%, #A8845F 100%);
-  border-color: rgba(200, 168, 130, 0.5);
-  box-shadow: 0 4px 20px rgba(200, 168, 130, 0.4);
-}
-
-/* حالة الصوت مكتوم */
-.mute-toggle.is-muted {
-  background: rgba(255, 59, 59, 0.8);
-  border-color: rgba(255, 59, 59, 0.5);
-  box-shadow: 0 4px 20px rgba(255, 59, 59, 0.3);
-}
-
-/* Hover Effect */
-.mute-toggle:hover {
-  transform: scale(1.15);
-}
-
-.mute-toggle:not(.is-muted):hover {
-  box-shadow: 0 6px 24px rgba(200, 168, 130, 0.6);
-}
-
-.mute-toggle.is-muted:hover {
-  box-shadow: 0 6px 24px rgba(255, 59, 59, 0.5);
-}
-
-/* Active State */
-.mute-toggle:active {
-  transform: scale(0.95);
-}
-
-/* Animation عند التبديل */
-.mute-toggle svg {
-  transition: all 0.3s ease;
-}
-
-.mute-toggle:active svg {
-  transform: scale(1.2);
-}
-
-/* Light Theme */
-[data-theme="light"] .mute-toggle {
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .mute-toggle:not(.is-muted) {
-  background: linear-gradient(135deg, #C8A882 0%, #A8845F 100%);
-  color: white;
-}
-
-[data-theme="light"] .mute-toggle.is-muted {
-  background: rgba(255, 59, 59, 0.95);
-  color: white;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .mute-toggle {
-    width: 46px;
-    height: 46px;
-    font-size: 20px;
-    top: 15px;
-    right: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .mute-toggle {
-    width: 42px;
-    height: 42px;
-    font-size: 18px;
-    top: 12px;
-    right: 12px;
-  }
-}
+/* End of Styles */
