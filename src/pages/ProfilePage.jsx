@@ -4,7 +4,7 @@ import { useAuth, api } from '../context/AuthContext';
 import { 
   FaSignOutAlt, FaCamera, FaHeart, FaPlay, FaTrash, 
   FaFilm, FaReply, FaEdit, FaCheck, FaTimes, 
-  FaCog, FaShare, FaEllipsisV, FaUserEdit, FaShieldAlt,
+  FaCog, FaShare, FaUserEdit, FaShieldAlt,
   FaComment, FaBell, FaLock
 } from 'react-icons/fa';
 import NavigationBar from '../components/NavigationBar';
@@ -48,10 +48,15 @@ const ProfilePage = () => {
         setProfileUser(null);
         return;
       }
+      
       setProfileUser(response.data.user);
       setVideos(response.data.videos || []);
+      
+      // ✅ طباعة بيانات الردود للتحقق من البنية
+      console.log('📋 Replies data:', response.data.replies);
       setReplies(response.data.replies || []);
-      setStats(response.data.stats || { videosCount:0,repliesCount:0,totalLikes:0 });
+      
+      setStats(response.data.stats || { videosCount: 0, repliesCount: 0, totalLikes: 0 });
 
       if (isOwnProfile) {
         try {
@@ -73,103 +78,92 @@ const ProfilePage = () => {
     if (!authLoading) fetchProfileData();
   }, [authLoading, fetchProfileData]);
 
-  // 🔧 Image upload - مُصلح// ✅ Image upload - النسخة الصحيحة 100%
-const handleImageUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  if (!file.type.startsWith('image/')) {
-    showNotification('يرجى اختيار صورة صحيحة', 'error');
-    return;
-  }
+    if (!file.type.startsWith('image/')) {
+      showNotification('يرجى اختيار صورة صحيحة', 'error');
+      return;
+    }
 
-  if (file.size > 5 * 1024 * 1024) {
-    showNotification('حجم الصورة يجب أن يكون أقل من 5MB', 'error');
-    return;
-  }
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('حجم الصورة يجب أن يكون أقل من 5MB', 'error');
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append('profileImage', file);
-  setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    setUploadingImage(true);
 
-  try {
-    const response = await api.post('/api/users/me/update-profile-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    try {
+      const response = await api.post('/api/users/me/update-profile-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.data.profileImage) {
+        setProfileUser(prev => ({ ...prev, profileImage: response.data.profileImage }));
+        updateUser({ profileImage: response.data.profileImage });
+      } else if (response.data.user) {
+        setProfileUser(prev => ({ ...prev, profileImage: response.data.user.profileImage }));
+        updateUser({ profileImage: response.data.user.profileImage });
       }
-    });
 
-    // ✅ Backend يُرجع: { profileImage, user, message }
-    console.log('✅ Response:', response.data);
-
-    if (response.data.profileImage) {
-      setProfileUser(prev => ({ ...prev, profileImage: response.data.profileImage }));
-      updateUser({ profileImage: response.data.profileImage });
-    } else if (response.data.user) {
-      setProfileUser(prev => ({ ...prev, profileImage: response.data.user.profileImage }));
-      updateUser({ profileImage: response.data.user.profileImage });
+      showNotification('تم تحديث الصورة بنجاح ✓', 'success');
+    } catch (error) {
+      console.error('❌ Error:', error);
+      showNotification(
+        error.response?.data?.error || 'فشل تحديث الصورة',
+        'error'
+      );
+    } finally {
+      setUploadingImage(false);
     }
+  };
 
-    showNotification('تم تحديث الصورة بنجاح ✓', 'success');
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
-    showNotification(
-      error.response?.data?.error || 'فشل تحديث الصورة', 
-      'error'
-    );
-  } finally {
-    setUploadingImage(false);
-  }
-};
-
-// ✅ Username update - النسخة الصحيحة 100%
-const handleUsernameUpdate = async () => {
-  if (!newUsername || newUsername === profileUser.username) {
-    setEditingUsername(false);
-    return;
-  }
-
-  if (newUsername.length < 3) {
-    showNotification('اسم المستخدم يجب أن يكون 3 أحرف على الأقل', 'error');
-    return;
-  }
-
-  if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
-    showNotification('اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط', 'error');
-    return;
-  }
-
-  try {
-    const response = await api.patch('/api/users/me/update-username', { 
-      username: newUsername 
-    });
-
-    // ✅ Backend يُرجع: { username, user, message }
-    console.log('✅ Response:', response.data);
-
-    const updatedUsername = response.data.username || response.data.user?.username;
-
-    if (updatedUsername) {
-      setProfileUser(prev => ({ ...prev, username: updatedUsername }));
-      updateUser({ username: updatedUsername });
+  const handleUsernameUpdate = async () => {
+    if (!newUsername || newUsername === profileUser.username) {
       setEditingUsername(false);
-      navigate(`/profile/${updatedUsername}`, { replace: true });
-      
+      return;
     }
-showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'success');
-  } catch (error) {
-    console.error('❌ Error:', error);
-    showNotification(
-      error.response?.data?.error || 'فشل تحديث اسم المستخدم', 
-      'error'
-    );
-  }
 
-}; // 🔧 Update username - مُصلح
- 
-  // Delete
+    if (newUsername.length < 3) {
+      showNotification('اسم المستخدم يجب أن يكون 3 أحرف على الأقل', 'error');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+      showNotification('اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط', 'error');
+      return;
+    }
+
+    try {
+      const response = await api.patch('/api/users/me/update-username', {
+        username: newUsername
+      });
+
+      const updatedUsername = response.data.username || response.data.user?.username;
+
+      if (updatedUsername) {
+        setProfileUser(prev => ({ ...prev, username: updatedUsername }));
+        updateUser({ username: updatedUsername });
+        setEditingUsername(false);
+        navigate(`/profile/${updatedUsername}`, { replace: true });
+      }
+
+      showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'success');
+    } catch (error) {
+      console.error('❌ Error:', error);
+      showNotification(
+        error.response?.data?.error || 'فشل تحديث اسم المستخدم',
+        'error'
+      );
+    }
+  };
+
   const handleDelete = async () => {
     if (!videoToDelete) return;
     try {
@@ -186,8 +180,8 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
       fetchProfileData();
     } catch (error) {
       console.error(error);
-      const errorMessage = error.response?.data?.error 
-        || error.response?.data?.message 
+      const errorMessage = error.response?.data?.error
+        || error.response?.data?.message
         || 'فشل الحذف';
       showNotification(errorMessage, 'error');
     }
@@ -211,14 +205,46 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
   const shareProfile = () => {
     const profileUrl = `${window.location.origin}/profile/${profileUser.username}`;
     if (navigator.share) {
-      navigator.share({ 
-        title: `${profileUser.username}@ على Otogram`, 
-        url: profileUrl 
+      navigator.share({
+        title: `${profileUser.username}@ على Otogram`,
+        url: profileUrl
       });
-    } else { 
-      navigator.clipboard.writeText(profileUrl); 
-      showNotification('تم نسخ الرابط ✓','success'); 
+    } else {
+      navigator.clipboard.writeText(profileUrl);
+      showNotification('تم نسخ الرابط ✓', 'success');
     }
+  };
+
+  // ✅ الانتقال للفيديو - محسّن ومصحح
+  const handleVideoClick = (video, type) => {
+    console.log('🎬 Clicked video data:', video);
+    console.log('📂 Tab type:', type);
+    
+    let targetVideoId = video._id;
+    
+    // ✅ للردود: البحث عن الفيديو الأصلي
+    if (type === 'replies') {
+      // جرب جميع الاحتمالات الممكنة لحقل الفيديو الأصلي
+      if (video.replyTo) {
+        targetVideoId = video.replyTo._id || video.replyTo;
+        console.log('🔄 Found replyTo:', targetVideoId);
+      } else if (video.parentVideo) {
+        targetVideoId = video.parentVideo._id || video.parentVideo;
+        console.log('🔄 Found parentVideo:', targetVideoId);
+      } else if (video.originalVideo) {
+        targetVideoId = video.originalVideo._id || video.originalVideo;
+        console.log('🔄 Found originalVideo:', targetVideoId);
+      } else {
+        console.warn('⚠️ No parent video found in reply:', video);
+      }
+    }
+    
+    console.log('✅ Final target video ID:', targetVideoId);
+    
+    // ✅ المسار الصحيح "/" وليس "/home"
+    navigate('/', {
+      state: { scrollToVideoId: targetVideoId }
+    });
   };
 
   if (authLoading || loading) {
@@ -247,9 +273,17 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
 
   let displayedContent = [];
   switch (activeTab) {
-    case 'posts': displayedContent = videos; break;
-    case 'replies': displayedContent = replies; break;
-    case 'liked': displayedContent = likedVideos; break;
+    case 'posts':
+      displayedContent = videos;
+      break;
+    case 'replies':
+      displayedContent = replies;
+      break;
+    case 'liked':
+      displayedContent = likedVideos;
+      break;
+    default:
+      displayedContent = [];
   }
 
   return (
@@ -273,10 +307,10 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
         <div className="profile-info-section">
           <div className="profile-avatar-container">
             <div className={`profile-avatar ${isOwnProfile ? 'editable' : ''}`}>
-              <img 
-                src={getAssetUrl(profileUser.profileImage)} 
-                alt={profileUser.username} 
-                className="profile-avatar-img" 
+              <img
+                src={getAssetUrl(profileUser.profileImage)}
+                alt={profileUser.username}
+                className="profile-avatar-img"
               />
               {isOwnProfile && (
                 <>
@@ -284,13 +318,13 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
                     <FaCamera className="camera-icon" />
                     <span>{uploadingImage ? 'جاري...' : 'تغيير الصورة'}</span>
                   </label>
-                  <input 
-                    type="file" 
-                    id="profile-image-input" 
-                    accept="image/*" 
-                    onChange={handleImageUpload} 
-                    hidden 
-                    disabled={uploadingImage} 
+                  <input
+                    type="file"
+                    id="profile-image-input"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    hidden
+                    disabled={uploadingImage}
                   />
                 </>
               )}
@@ -301,13 +335,13 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
             <div className="username-container">
               {editingUsername ? (
                 <div className="username-edit-mode">
-                  <input 
-                    type="text" 
-                    value={newUsername} 
-                    onChange={(e) => setNewUsername(e.target.value)} 
-                    placeholder="اسم المستخدم الجديد" 
-                    className="username-input" 
-                    autoFocus 
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="اسم المستخدم الجديد"
+                    className="username-input"
+                    autoFocus
                   />
                   <div className="edit-actions">
                     <button onClick={handleUsernameUpdate} className="save-username-btn">
@@ -321,11 +355,11 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
               ) : (
                 <div className="username-display-mode">
                   {isOwnProfile && (
-                    <button 
+                    <button
                       onClick={() => {
-                        setEditingUsername(true); 
+                        setEditingUsername(true);
                         setNewUsername(profileUser.username);
-                      }} 
+                      }}
                       className="edit-username-btn"
                     >
                       <FaEdit />
@@ -361,23 +395,23 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
 
         {/* Tabs */}
         <div className="profile-tabs">
-          <button 
-            className={`tab ${activeTab === 'posts' ? 'active' : ''}`} 
+          <button
+            className={`tab ${activeTab === 'posts' ? 'active' : ''}`}
             onClick={() => setActiveTab('posts')}
           >
             <FaFilm />
             <span>المنشورات</span>
           </button>
-          <button 
-            className={`tab ${activeTab === 'replies' ? 'active' : ''}`} 
+          <button
+            className={`tab ${activeTab === 'replies' ? 'active' : ''}`}
             onClick={() => setActiveTab('replies')}
           >
             <FaReply />
             <span>الردود</span>
           </button>
           {isOwnProfile && (
-            <button 
-              className={`tab ${activeTab === 'liked' ? 'active' : ''}`} 
+            <button
+              className={`tab ${activeTab === 'liked' ? 'active' : ''}`}
               onClick={() => setActiveTab('liked')}
             >
               <FaHeart />
@@ -393,28 +427,30 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
               {displayedContent.map(item => (
                 <div key={item._id} className="video-card">
                   {isOwnProfile && (activeTab === 'posts' || activeTab === 'replies') && (
-                    <button 
-                      className="delete-btn" 
+                    <button
+                      className="delete-btn"
                       onClick={(e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         confirmDelete(item._id, activeTab === 'posts' ? 'video' : 'reply');
                       }}
                     >
                       <FaTrash />
                     </button>
                   )}
-<div 
-  className="video-thumbnail" 
-  onClick={() => navigate('/', { state: { scrollToVideoId: item._id } })}
->
-                    <video 
-                      src={getAssetUrl(item.videoUrl)} 
-                      muted 
-                      onMouseEnter={e => e.target.play()} 
+
+                  <div
+                    className="video-thumbnail"
+                    onClick={() => handleVideoClick(item, activeTab)}
+                  >
+                    <video
+                      src={getAssetUrl(item.videoUrl)}
+                      muted
+                      playsInline
+                      onMouseEnter={e => e.target.play()}
                       onMouseLeave={e => {
-                        e.target.pause(); 
+                        e.target.pause();
                         e.target.currentTime = 0;
-                      }} 
+                      }}
                     />
                     <div className="video-overlay">
                       <div className="video-stats">
@@ -424,11 +460,31 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
                         <span className="stat">
                           <FaHeart /> {item.likes?.length || 0}
                         </span>
-                        <span className="stat">
-                          <FaComment /> {item.comments?.length || 0}
-                        </span>
+                        {item.replies && (
+                          <span className="stat">
+                            <FaComment /> {item.replies.length || 0}
+                          </span>
+                        )}
                       </div>
+                      
+                      {activeTab === 'replies' && (
+                        <div className="reply-badge">
+                          <FaReply /> رد
+                        </div>
+                      )}
+                      
+                      {activeTab === 'liked' && (
+                        <div className="liked-badge">
+                          <FaHeart /> أعجبني
+                        </div>
+                      )}
                     </div>
+                    
+                    {item.description && (
+                      <div className="video-description-preview">
+                        <p>{item.description}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -440,7 +496,11 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
                 {activeTab === 'replies' && <FaReply />}
                 {activeTab === 'liked' && <FaHeart />}
               </div>
-              <p>لا يوجد محتوى لعرضه</p>
+              <p>
+                {activeTab === 'posts' && 'لا توجد منشورات'}
+                {activeTab === 'replies' && 'لا توجد ردود'}
+                {activeTab === 'liked' && 'لا توجد إعجابات'}
+              </p>
               {isOwnProfile && activeTab === 'posts' && (
                 <button className="upload-btn" onClick={() => navigate('/upload')}>
                   رفع فيديو جديد
@@ -460,8 +520,8 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
             </div>
             <div className="modal-body">
               <p>
-                {videoToDelete?.type === 'video' 
-                  ? 'سيتم حذف هذا الفيديو وجميع الردود المرتبطة به. هل أنت متأكد؟' 
+                {videoToDelete?.type === 'video'
+                  ? 'سيتم حذف هذا الفيديو وجميع الردود المرتبطة به. هل أنت متأكد؟'
                   : 'هل أنت متأكد من حذف هذا الرد؟'}
               </p>
             </div>
@@ -530,6 +590,5 @@ showNotification('تم تحديث اسم المستخدم بنجاح ✓', 'succ
     </div>
   );
 };
-
 
 export default ProfilePage;
