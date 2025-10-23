@@ -6,6 +6,7 @@ import {
 import NavigationBar from '../components/NavigationBar';
 import { useNavigate, useLocation } from 'react-router-dom'; // ✅ نحتاج useLocation
 import { useAuth, api } from '../context/AuthContext';
+import Toast from '../components/Toast';
 
 import AdvancedVideoPlayer from '../components/AdvancedVideoPlayer';
 import './HomePage.css';
@@ -21,7 +22,13 @@ const HomePage = () => {
   const [likedReplies, setLikedReplies] = useState(new Set());
   const [isMuted] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
-  
+    // ✅ إضافة state للـ Toast
+  const [toast, setToast] = useState(null);
+  // ✅ دالة لإظهار Toast
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000); // يختفي بعد 3 ثواني
+  };
   const [isMainPlayerActive, setIsMainPlayerActive] = useState(false);
   const [isReplyPlayerActive, setIsReplyPlayerActive] = useState(false);
 
@@ -158,11 +165,19 @@ const HomePage = () => {
     setIsReplyPlayerActive(false);
   }, [activeReplyIndex]);
 
+// ✅ تحديث دالة التحميل
   const downloadVideo = async (videoUrl, videoId, fileName) => {
     try {
+      console.log('📥 Starting download for video:', videoId);
+      
       setDownloadProgress(prev => ({ ...prev, [videoId]: 0 }));
 
       const response = await fetch(getAssetUrl(videoUrl));
+
+      if (!response.ok) {
+        throw new Error('فشل تنزيل الفيديو');
+      }
+
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
       let loaded = 0;
@@ -177,8 +192,10 @@ const HomePage = () => {
         chunks.push(value);
         loaded += value.length;
 
-        const progress = Math.round((loaded / total) * 100);
-        setDownloadProgress(prev => ({ ...prev, [videoId]: progress }));
+        if (total) {
+          const progress = Math.round((loaded / total) * 100);
+          setDownloadProgress(prev => ({ ...prev, [videoId]: progress }));
+        }
       }
 
       const blob = new Blob(chunks, { type: 'video/mp4' });
@@ -188,7 +205,7 @@ const HomePage = () => {
 
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName || `video_${videoId}.mp4`;
+      link.download = fileName || `otogram_${videoId}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -205,10 +222,15 @@ const HomePage = () => {
         return newProgress;
       });
 
-      alert('✅ تم تنزيل الفيديو بنجاح!');
+      // ✅ استبدال alert بـ Toast
+      showToast('تم تنزيل الفيديو بنجاح !', 'success');
+
     } catch (error) {
-      console.error('Download error:', error);
-      alert('❌ فشل تنزيل الفيديو');
+      console.error('❌ Download error:', error);
+      
+      // ✅ استبدال alert بـ Toast
+      showToast('فشل تنزيل الفيديو', 'error');
+      
       setDownloadProgress(prev => {
         const newProgress = { ...prev };
         delete newProgress[videoId];
@@ -216,6 +238,7 @@ const HomePage = () => {
       });
     }
   };
+
 
   const saveVideoToIndexedDB = (videoId, blob, fileName) => {
     return new Promise((resolve, reject) => {
@@ -753,7 +776,14 @@ const HomePage = () => {
           </div>
         </div>
       )}
-
+{/* ✅ Toast Notification */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <NavigationBar currentPage="home" />
     </div>
   );
