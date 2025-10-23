@@ -1025,3 +1025,140 @@ button:focus-visible,
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+/* ========================================
+   VIDEO CARD BADGES
+   ======================================== */
+
+.reply-badge,
+.liked-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  animation: fadeIn 0.3s ease;
+}
+
+.reply-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.liked-badge {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* ========================================
+   VIDEO DESCRIPTION PREVIEW
+   ======================================== */
+
+.video-description-preview {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  padding: 20px 12px 12px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+}
+
+.video-card:hover .video-description-preview {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.video-description-preview p {
+  color: white;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   VIDEO CARD HOVER EFFECTS
+   ======================================== */
+
+.video-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.video-card:active {
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   LOADING STATE FOR NAVIGATION
+   ======================================== */
+
+.video-thumbnail {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.video-thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s ease;
+  pointer-events: none;
+}
+
+.video-thumbnail:active::after {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .reply-badge,
+  .liked-badge {
+    padding: 4px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .video-description-preview p {
+    font-size: 12px;
+    -webkit-line-clamp: 1;
+  }
+}
