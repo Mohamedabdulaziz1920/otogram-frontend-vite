@@ -2,9 +2,9 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.otogram.app",
+    "package_name": "app.otogram.android",
     "sha256_cert_fingerprints": [
-      "E3:4B:64:0E:85:BB:93:83:EE:B5:74:AF:D0:CA:AA:A1:14:81:E1:AB:F6:E5:C9:57:33:E1:3B:19:AC:B9:CF:AF"
+      "12:10:AE:95:99:E6:0B:1D:D2:07:29:AB:F9:9E:FC:CB:ED:6A:3E:98:22:9E:C9:63:38:A8:AE:C9:9E:35:68:95"
     ]
   }
 }]
